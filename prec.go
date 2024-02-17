@@ -124,12 +124,40 @@ const (
 )
 
 type SExpr struct {
-	typ  SExprType
-	tok  *Tok
-	args []*SExpr
+	Typ  SExprType
+	Tok  *Tok
+	Args []*SExpr
 }
 
+type SExprVisitFunc = func(s *SExpr)
+
+func (s *SExpr) visitAtom(f SExprVisitFunc) { f(s) }
+func (s *SExpr) visitNil(f SExprVisitFunc)  { f(s) }
+func (s *SExpr) visitList(f SExprVisitFunc) {
+	f(s)
+	if s.Args == nil {
+		return
+	}
+	for _, arg := range s.Args {
+		arg.Visit(f)
+	}
+}
+func (s *SExpr) Visit(f SExprVisitFunc) {
+	if s.Typ == Atom {
+		s.visitAtom(f)
+	} else if s.Typ == Nil {
+		s.visitNil(f)
+	} else if s.Typ == List {
+		s.visitList(f)
+	}
+}
 func (s *SExpr) Eval() (string, error) { return "", TODO }
+func (s SExpr) String() string {
+	if s.Tok == nil {
+		return fmt.Sprintf("%s", s.Typ.String())
+	}
+	return fmt.Sprintf("%s:%s:%s", s.Typ.String(), s.Tok.Typ.String(), s.Tok.Value)
+}
 
 type SExprBuilder struct {
 	lexer Lexer
@@ -139,19 +167,15 @@ func NewSExprBuilder(source string) SExprBuilder {
 	lexer := NewLexer(source)
 	return SExprBuilder{lexer}
 }
-
 func (b *SExprBuilder) peek() (*Tok, error) {
 	b.lexer.skipWhile(Space)
 	return b.lexer.Peek()
 }
-
 func (b *SExprBuilder) next() (*Tok, error) {
 	b.lexer.skipWhile(Space)
 	return b.lexer.Next()
 }
-
 func (b *SExprBuilder) atom(tok *Tok) (SExpr, error) { return SExpr{Atom, tok, nil}, nil }
-
 func (b *SExprBuilder) list(tok *Tok) (SExpr, error) {
 	// check if (empty, nil) list
 	tok2, _ := b.peek()
@@ -180,7 +204,6 @@ func (b *SExprBuilder) list(tok *Tok) (SExpr, error) {
 	}
 	return SExpr{List, nil, args}, tokerr
 }
-
 func (b *SExprBuilder) Build() (SExpr, error) {
 	tok, err := b.next()
 	if err != nil {
@@ -194,11 +217,51 @@ func (b *SExprBuilder) Build() (SExpr, error) {
 	return SExpr{}, errors.New(fmt.Sprintf("invalid entry: `%v`", tok.Value))
 }
 
+// TODO: way to get into end of list for now fine
+type SExprDumper struct {
+	Indent int
+	depth  int
+}
+
+func (d *SExprDumper) indent() {
+	for i := 0; i < d.depth; i++ {
+		for j := 0; j < d.Indent; j++ {
+			fmt.Print(" ")
+		}
+	}
+}
+func (d *SExprDumper) Stdout(s *SExpr) {
+	if s == nil {
+		return
+	}
+	s.Visit(func(s *SExpr) {
+		if s == nil {
+			return
+		}
+		if s.Typ == List {
+			if d.depth < 0 {
+				d.depth = 0
+			} else {
+				fmt.Print("\n")
+				d.depth += 1
+			}
+			d.indent()
+			fmt.Printf("%s ", s.String())
+		}
+		if s.Typ == Atom || s.Typ == Nil {
+			fmt.Printf("%s ", s.String())
+		}
+	})
+	fmt.Printf("\n")
+}
+
 func main() {
-	b := NewSExprBuilder("(3 2 1)")
+	// b := NewSExprBuilder("(1 (0) ((100 100 100) () () (1 2 3 10)))")
+	b := NewSExprBuilder("(((((((1)))))))")
 	expr, err := b.Build()
 	if err != nil {
 		panic(fmt.Sprintf("expr build failed with %v", err))
 	}
-	fmt.Printf("Expr: %#v\n", expr)
+	dumper := SExprDumper{Indent: 2, depth: -1}
+	dumper.Stdout(&expr)
 }
