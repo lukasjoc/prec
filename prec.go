@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"unicode"
 )
@@ -19,7 +21,7 @@ const (
 	Eof
 )
 
-// ErrEOF there are no toks left to read.
+// ErrEOF there are no toks left to read
 var ErrEOF = errors.New("EOF")
 
 // ErrTODO the function is not implemented
@@ -172,10 +174,7 @@ func (s SExpr) String() string {
 
 type SExprBuilder struct{ lexer Lexer }
 
-func NewSExprBuilder(source string) SExprBuilder {
-	lexer := NewLexer(source)
-	return SExprBuilder{lexer}
-}
+func NewSExprBuilder(source string) SExprBuilder { return SExprBuilder{NewLexer(source)} }
 func (b *SExprBuilder) peek() (*Tok, error) {
 	b.lexer.skipWhile(Space)
 	return b.lexer.Peek()
@@ -231,9 +230,10 @@ func (b *SExprBuilder) Build() (SExpr, error) {
 	return SExpr{}, fmt.Errorf("invalid entrypoint: `%s`", tok.Value)
 }
 
+// TODO: make it bufio.Writer compatible
 type SExprDumper struct{ Indent int }
 
-func (d *SExprDumper) Stdout(s *SExpr) {
+func (d *SExprDumper) StdoutWrite(s *SExpr) {
 	if s == nil {
 		return
 	}
@@ -246,16 +246,25 @@ func (d *SExprDumper) Stdout(s *SExpr) {
 	}, &SExprVisitCtx{Depth: 0})
 }
 
-func evalPrint(source string, dumper *SExprDumper) {
-	b := NewSExprBuilder(source)
-	expr, err := b.Build()
-	if err != nil {
-		panic(fmt.Errorf("failed building sexpr from `%s` %v", source, err))
-	}
-	dumper.Stdout(&expr)
-}
-
 func main() {
 	dumper := SExprDumper{Indent: 2}
-	evalPrint("(1 (1) 1 )", &dumper)
+	stdin := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Printf(">> ")
+		raw, err := stdin.ReadString('\n')
+		if err != nil {
+			panic(err)
+		}
+		line := strings.TrimSpace(raw)
+		if len(line) == 0 {
+			continue
+		}
+		builder := NewSExprBuilder(line)
+		expr, err := builder.Build()
+		if err != nil && err != ErrEOF {
+			fmt.Printf("could not build sexpr from `%s` %v\n", line, err)
+			continue
+		}
+		dumper.StdoutWrite(&expr)
+	}
 }
