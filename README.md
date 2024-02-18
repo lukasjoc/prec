@@ -2,10 +2,8 @@
 
 > eval right away lispy expressions sort of app
 
-Setup:
+Development:
 ```bash
-go install golang.org/x/tools/cmd/stringer@latest
-go generate
-go install
+go generate ; go install
 prec
 ```
