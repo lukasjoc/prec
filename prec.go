@@ -19,8 +19,14 @@ const (
 	Eof
 )
 
-var EOF = errors.New("EOF")
-var TODO = errors.New("TODO: not yet implemented")
+// ErrEOF there are no toks left to read.
+var ErrEOF = errors.New("EOF")
+
+// ErrTODO the function is not implemented
+var ErrTODO = errors.New("TODO: not yet implemented")
+
+// ErrUnterminatedList a list was opened but never closed
+var ErrUnterminatedList = errors.New("unterminated list")
 
 const EOFCh rune = '\000'
 
@@ -90,7 +96,7 @@ func (l *Lexer) skipWhile(typ TokType) error {
 func (l *Lexer) Next() (*Tok, error) {
 	ch := l.eat()
 	if ch == EOFCh {
-		return nil, EOF
+		return nil, ErrEOF
 	}
 	typ := Dunno
 	if ch == '(' {
@@ -156,7 +162,7 @@ func (s *SExpr) Visit(f SExprVisitFunc, ctx *SExprVisitCtx) {
 		s.visitList(f, ctx)
 	}
 }
-func (s *SExpr) Eval() (string, error) { return "", TODO }
+func (s *SExpr) Eval() (string, error) { return "", ErrTODO }
 func (s SExpr) String() string {
 	if s.Tok == nil {
 		return s.Typ.String()
@@ -180,18 +186,23 @@ func (b *SExprBuilder) next() (*Tok, error) {
 }
 func (b *SExprBuilder) atom(tok *Tok) (SExpr, error) { return SExpr{Atom, tok, nil}, nil }
 func (b *SExprBuilder) list(tok *Tok) (SExpr, error) {
+	tok2, err := b.peek()
+	if err != nil {
+		return SExpr{}, ErrUnterminatedList
+	}
+
 	// check if (empty, nil) list
-	tok2, _ := b.peek()
 	if tok2.Typ == ClosePar {
 		b.next()
 		return SExpr{Nil, nil, nil}, nil
 	}
+
 	var tokerr error = nil
 	args := []*SExpr{}
 	for {
 		tok, err := b.peek()
 		if err != nil {
-			tokerr = err
+			tokerr = ErrUnterminatedList
 			break
 		}
 		if tok.Typ == ClosePar {
@@ -217,7 +228,7 @@ func (b *SExprBuilder) Build() (SExpr, error) {
 	} else if tok.Typ == Const {
 		return b.atom(tok)
 	}
-	return SExpr{}, fmt.Errorf("invalid entry: `%v`", tok.Value)
+	return SExpr{}, fmt.Errorf("invalid entrypoint: `%s`", tok.Value)
 }
 
 type SExprDumper struct{ Indent int }
@@ -235,12 +246,16 @@ func (d *SExprDumper) Stdout(s *SExpr) {
 	}, &SExprVisitCtx{Depth: 0})
 }
 
-func main() {
-	b := NewSExprBuilder("(1 (0) ((100 100 100) () () (1 2 3 10)))")
+func evalPrint(source string, dumper *SExprDumper) {
+	b := NewSExprBuilder(source)
 	expr, err := b.Build()
 	if err != nil {
-		panic(fmt.Sprintf("expr build failed with %v", err))
+		panic(fmt.Errorf("failed building sexpr from `%s` %v", source, err))
 	}
-	dumper := SExprDumper{Indent: 2}
 	dumper.Stdout(&expr)
+}
+
+func main() {
+	dumper := SExprDumper{Indent: 2}
+	evalPrint("(1 (1) 1 )", &dumper)
 }
