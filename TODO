@@ -1,0 +1,6 @@
+TODO:
+---
+
+- https://pkg.go.dev/math/big support
+- lexer should support floats and neg. numbers
+- builtins?

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -14,12 +15,15 @@ type TokType int
 
 const (
 	Const TokType = iota
+	Op
 	OpenPar
 	ClosePar
 	Space
 	Dunno
 	Eof
 )
+
+func isSupportedOp(ch rune) bool { return ch == '+' || ch == '-' || ch == '*' || ch == '/' }
 
 // ErrEOF there are no toks left to read
 var ErrEOF = errors.New("EOF")
@@ -113,6 +117,8 @@ func (l *Lexer) Next() (*Tok, error) {
 	} else if unicode.IsSpace(ch) {
 		l.eatWhile(func(ch rune) bool { return unicode.IsSpace(ch) })
 		typ = Space
+	} else if isSupportedOp(ch) {
+		typ = Op
 	}
 	toklen := len(l.source) - l.left
 	tok := &Tok{typ, l.last, l.span(l.last, toklen)}
@@ -138,9 +144,23 @@ type SExpr struct {
 	Args []*SExpr
 }
 
-type SExprVisitCtx struct{ Depth int }
+func (s SExpr) String() string {
+	if s.Tok == nil {
+		return s.Typ.String()
+	}
+	return fmt.Sprintf("%s:%s:%s", s.Typ.String(), s.Tok.Typ.String(), s.Tok.Value)
+}
+
+func (s *SExpr) IsAtom() bool { return s.Typ == Atom }
+func (s *SExpr) IsOp() bool   { return s.IsAtom() && s.Tok.Typ == Op }
+func (s *SExpr) IsList() bool { return s.Typ == List }
+func (s *SExpr) IsNil() bool  { return s.Typ == Nil }
 
 type SExprVisitFunc = func(s *SExpr, ctx *SExprVisitCtx)
+type SExprVisitCtx struct {
+	// TODO: imagine a max depth for savety :)
+	Depth int
+}
 
 func (s *SExpr) visitAtom(f SExprVisitFunc, ctx *SExprVisitCtx) { f(s, ctx) }
 func (s *SExpr) visitNil(f SExprVisitFunc, ctx *SExprVisitCtx)  { f(s, ctx) }
@@ -156,20 +176,84 @@ func (s *SExpr) visitList(f SExprVisitFunc, ctx *SExprVisitCtx) {
 	ctx.Depth -= 1
 }
 func (s *SExpr) Visit(f SExprVisitFunc, ctx *SExprVisitCtx) {
-	if s.Typ == Atom {
+	if s.IsAtom() {
 		s.visitAtom(f, ctx)
-	} else if s.Typ == Nil {
+	} else if s.IsNil() {
 		s.visitNil(f, ctx)
-	} else if s.Typ == List {
+	} else if s.IsList() {
 		s.visitList(f, ctx)
 	}
 }
-func (s *SExpr) Eval() (string, error) { return "", ErrTODO }
-func (s SExpr) String() string {
-	if s.Tok == nil {
-		return s.Typ.String()
+
+func applyOp(op string, valsPtr *[]float64) (*float64, error) {
+	if valsPtr == nil {
+		return nil, nil
 	}
-	return fmt.Sprintf("%s:%s:%s", s.Typ.String(), s.Tok.Typ.String(), s.Tok.Value)
+	vals := *valsPtr
+	if len(vals) == 0 {
+		return nil, errors.New("expected at least a single operand for evaluation")
+	}
+	acc := float64(vals[0])
+	operands := vals[1:]
+	for _, operand := range operands {
+		flOp := float64(operand)
+		switch op {
+		case "+":
+			acc += flOp
+		case "-":
+			acc -= flOp
+		case "*":
+			acc *= flOp
+		case "/":
+			acc /= flOp
+		default:
+			return nil, errors.New("invalid op expected one of `+-*/`")
+		}
+	}
+	// fmt.Printf("part: (%v %v) :: %v\n", op, vals, acc)
+	return &acc, nil
+}
+func (s *SExpr) Eval() (*float64, error) {
+	if s.IsAtom() {
+		return s.evalAtom()
+	} else if s.IsNil() {
+		return s.evalNil()
+	} else if s.IsList() {
+		return s.evalList()
+	}
+	return nil, errors.New("invalid type for evaluation. Neither list, nil nor atom")
+}
+func (s *SExpr) evalAtom() (*float64, error) {
+	if s.Tok == nil || s.Tok.Typ != Const {
+		return nil, fmt.Errorf("cannot evaluate atom type `%v`", s.String())
+	}
+	val, err := strconv.ParseFloat(s.Tok.Value, 64)
+	if err != nil {
+		return nil, err
+	}
+	return &val, nil
+}
+func (s *SExpr) evalNil() (*float64, error) { return nil, nil }
+func (s *SExpr) evalList() (*float64, error) {
+	if s == nil || s.Args == nil || len(s.Args) == 0 || !s.Args[0].IsOp() {
+		return nil, nil
+	}
+	op := s.Args[0]
+	flatvals := []float64{}
+	operands := s.Args[1:]
+	for _, operand := range operands {
+		if operand.IsOp() {
+			return nil, fmt.Errorf("invalid operand type `%v`", operand.String())
+		}
+		opval, err := operand.Eval()
+		if err != nil {
+			return nil, err
+		}
+		if opval != nil {
+			flatvals = append(flatvals, *opval)
+		}
+	}
+	return applyOp(op.Tok.Value, &flatvals)
 }
 
 type SExprBuilder struct{ lexer Lexer }
@@ -189,13 +273,12 @@ func (b *SExprBuilder) list(tok *Tok) (SExpr, error) {
 	if err != nil {
 		return SExpr{}, ErrUnterminatedList
 	}
-
-	// check if (empty, nil) list
+	// TODO: fix error with ignored trailing parens in lists
+	// that should lead to a ErrUnterminatedList
 	if tok2.Typ == ClosePar {
 		b.next()
 		return SExpr{Nil, nil, nil}, nil
 	}
-
 	var tokerr error = nil
 	args := []*SExpr{}
 	for {
@@ -222,10 +305,10 @@ func (b *SExprBuilder) Build() (SExpr, error) {
 	if err != nil {
 		return SExpr{}, err
 	}
-	if tok.Typ == OpenPar {
-		return b.list(tok)
-	} else if tok.Typ == Const {
+	if tok.Typ == Const || tok.Typ == Op {
 		return b.atom(tok)
+	} else if tok.Typ == OpenPar {
+		return b.list(tok)
 	}
 	return SExpr{}, fmt.Errorf("invalid entrypoint: `%s`", tok.Value)
 }
@@ -250,21 +333,26 @@ func main() {
 	dumper := SExprDumper{Indent: 2}
 	stdin := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Printf(">> ")
-		raw, err := stdin.ReadString('\n')
-		if err != nil {
-			panic(err)
-		}
+		fmt.Printf(">>> ")
+		raw, _ := stdin.ReadString('\n')
 		line := strings.TrimSpace(raw)
 		if len(line) == 0 {
 			continue
 		}
 		builder := NewSExprBuilder(line)
-		expr, err := builder.Build()
+		s, err := builder.Build()
 		if err != nil && err != ErrEOF {
-			fmt.Printf("could not build sexpr from `%s` %v\n", line, err)
+			fmt.Printf("ERROR: could not build sexpr from `%s` %v\n", line, err)
 			continue
 		}
-		dumper.StdoutWrite(&expr)
+		dumper.StdoutWrite(&s)
+		val, err := s.Eval()
+		if err != nil {
+			fmt.Printf("ERROR: could not evaluate sexpr from `%s` %v\n", line, err)
+		} else {
+			if val != nil {
+				fmt.Println(*val)
+			}
+		}
 	}
 }

@@ -9,16 +9,17 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[Const-0]
-	_ = x[OpenPar-1]
-	_ = x[ClosePar-2]
-	_ = x[Space-3]
-	_ = x[Dunno-4]
-	_ = x[Eof-5]
+	_ = x[Op-1]
+	_ = x[OpenPar-2]
+	_ = x[ClosePar-3]
+	_ = x[Space-4]
+	_ = x[Dunno-5]
+	_ = x[Eof-6]
 }
 
-const _TokType_name = "ConstOpenParCloseParSpaceDunnoEof"
+const _TokType_name = "ConstOpOpenParCloseParSpaceDunnoEof"
 
-var _TokType_index = [...]uint8{0, 5, 12, 20, 25, 30, 33}
+var _TokType_index = [...]uint8{0, 5, 7, 14, 22, 27, 32, 35}
 
 func (i TokType) String() string {
 	if i < 0 || i >= TokType(len(_TokType_index)-1) {
