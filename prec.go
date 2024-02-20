@@ -97,12 +97,12 @@ func (l *Lexer) skipWhile(typ TokType) error {
 			break
 		}
 	}
-	return tokerr
+	return fmt.Errorf("skipWhile: %w", tokerr)
 }
 func (l *Lexer) Next() (*Tok, error) {
 	ch := l.eat()
 	if ch == EOFCh {
-		return nil, ErrEOF
+		return nil, fmt.Errorf("next: %w", ErrEOF)
 	}
 	typ := Dunno
 	if ch == '(' {
@@ -191,7 +191,7 @@ func applyOp(op string, valsPtr *[]float64) (*float64, error) {
 	}
 	vals := *valsPtr
 	if len(vals) == 0 {
-		return nil, errors.New("expected at least a single operand for evaluation")
+		return nil, errors.New("applyOp: expected at least a single operand for evaluation")
 	}
 	acc := float64(vals[0])
 	operands := vals[1:]
@@ -207,7 +207,7 @@ func applyOp(op string, valsPtr *[]float64) (*float64, error) {
 		case "/":
 			acc /= flOp
 		default:
-			return nil, errors.New("invalid op expected one of `+-*/`")
+			return nil, errors.New("applyOp: invalid op expected one of `+-*/`")
 		}
 	}
 	// fmt.Printf("part: (%v %v) :: %v\n", op, vals, acc)
@@ -221,7 +221,7 @@ func (s *SExpr) Eval() (*float64, error) {
 	} else if s.IsList() {
 		return s.evalList()
 	}
-	return nil, errors.New("invalid type for evaluation. Neither list, nil nor atom")
+	return nil, errors.New("eval: invalid type for evaluation. Neither list, nil nor atom")
 }
 func (s *SExpr) evalAtom() (*float64, error) {
 	if s.Tok == nil || s.Tok.Typ != Const {
@@ -229,7 +229,7 @@ func (s *SExpr) evalAtom() (*float64, error) {
 	}
 	val, err := strconv.ParseFloat(s.Tok.Value, 64)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("evalAtom: %w", err)
 	}
 	return &val, nil
 }
@@ -243,11 +243,11 @@ func (s *SExpr) evalList() (*float64, error) {
 	operands := s.Args[1:]
 	for _, operand := range operands {
 		if operand.IsOp() {
-			return nil, fmt.Errorf("invalid operand type `%v`", operand.String())
+			return nil, fmt.Errorf("evalList: invalid operand type `%v`", operand.String())
 		}
 		opval, err := operand.Eval()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("evalList: %w", err)
 		}
 		if opval != nil {
 			flatvals = append(flatvals, *opval)
@@ -271,7 +271,7 @@ func (b *SExprBuilder) atom(tok *Tok) (SExpr, error) { return SExpr{Atom, tok, n
 func (b *SExprBuilder) list(tok *Tok) (SExpr, error) {
 	tok2, err := b.peek()
 	if err != nil {
-		return SExpr{}, ErrUnterminatedList
+		return SExpr{}, fmt.Errorf("list: %w", ErrUnterminatedList)
 	}
 	// TODO: fix error with ignored trailing parens in lists
 	// that should lead to a ErrUnterminatedList
@@ -284,7 +284,7 @@ func (b *SExprBuilder) list(tok *Tok) (SExpr, error) {
 	for {
 		tok, err := b.peek()
 		if err != nil {
-			tokerr = ErrUnterminatedList
+			tokerr = fmt.Errorf("list: %w", ErrUnterminatedList)
 			break
 		}
 		if tok.Typ == ClosePar {
@@ -303,14 +303,14 @@ func (b *SExprBuilder) list(tok *Tok) (SExpr, error) {
 func (b *SExprBuilder) Build() (SExpr, error) {
 	tok, err := b.next()
 	if err != nil {
-		return SExpr{}, err
+		return SExpr{}, fmt.Errorf("build: %w", err)
 	}
 	if tok.Typ == Const || tok.Typ == Op {
 		return b.atom(tok)
 	} else if tok.Typ == OpenPar {
 		return b.list(tok)
 	}
-	return SExpr{}, fmt.Errorf("invalid entrypoint: `%s`", tok.Value)
+	return SExpr{}, fmt.Errorf("build: invalid entrypoint: `%s`", tok.Value)
 }
 
 // TODO: make it bufio.Writer compatible
@@ -332,8 +332,10 @@ func (d *SExprDumper) StdoutWrite(s *SExpr) {
 func main() {
 	dumper := SExprDumper{Indent: 2}
 	stdin := bufio.NewReader(os.Stdin)
+    fmt.Println("prec v1")
+    fmt.Println("The calculator with the lispy dialect.")
 	for {
-		fmt.Printf(">>> ")
+		fmt.Printf("; ")
 		raw, _ := stdin.ReadString('\n')
 		line := strings.TrimSpace(raw)
 		if len(line) == 0 {
@@ -341,7 +343,7 @@ func main() {
 		}
 		builder := NewSExprBuilder(line)
 		s, err := builder.Build()
-		if err != nil && err != ErrEOF {
+		if err != nil && !errors.Is(err, ErrEOF) {
 			fmt.Printf("ERROR: could not build sexpr from `%s` %v\n", line, err)
 			continue
 		}
@@ -349,10 +351,11 @@ func main() {
 		val, err := s.Eval()
 		if err != nil {
 			fmt.Printf("ERROR: could not evaluate sexpr from `%s` %v\n", line, err)
-		} else {
-			if val != nil {
-				fmt.Println(*val)
-			}
+			continue
 		}
+		if val == nil {
+			continue
+		}
+		fmt.Println(*val)
 	}
 }
