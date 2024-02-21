@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"math/big"
 	"os"
-	"strconv"
 	"strings"
 	"unicode"
 )
@@ -185,7 +185,7 @@ func (s *SExpr) Visit(f SExprVisitFunc, ctx *SExprVisitCtx) {
 	}
 }
 
-func applyOp(op string, valsPtr *[]float64) (*float64, error) {
+func applyOp(op string, valsPtr *[]big.Float) (*big.Float, error) {
 	if valsPtr == nil {
 		return nil, nil
 	}
@@ -193,27 +193,24 @@ func applyOp(op string, valsPtr *[]float64) (*float64, error) {
 	if len(vals) == 0 {
 		return nil, errors.New("applyOp: expected at least a single operand for evaluation")
 	}
-	acc := float64(vals[0])
-	operands := vals[1:]
-	for _, operand := range operands {
-		flOp := float64(operand)
+	x := vals[0]
+	for _, y := range vals[1:] {
 		switch op {
 		case "+":
-			acc += flOp
+			x.Add(&x, &y)
 		case "-":
-			acc -= flOp
+			x.Sub(&x, &y)
 		case "*":
-			acc *= flOp
+			x.Mul(&x, &y)
 		case "/":
-			acc /= flOp
+			x.Quo(&x, &y)
 		default:
 			return nil, errors.New("applyOp: invalid op expected one of `+-*/`")
 		}
 	}
-	// fmt.Printf("part: (%v %v) :: %v\n", op, vals, acc)
-	return &acc, nil
+	return &x, nil
 }
-func (s *SExpr) Eval() (*float64, error) {
+func (s *SExpr) Eval() (*big.Float, error) {
 	if s.IsAtom() {
 		return s.evalAtom()
 	} else if s.IsNil() {
@@ -223,23 +220,24 @@ func (s *SExpr) Eval() (*float64, error) {
 	}
 	return nil, errors.New("eval: invalid type for evaluation. Neither list, nil nor atom")
 }
-func (s *SExpr) evalAtom() (*float64, error) {
+func (s *SExpr) evalAtom() (*big.Float, error) {
 	if s.Tok == nil || s.Tok.Typ != Const {
-		return nil, fmt.Errorf("cannot evaluate atom type `%v`", s.String())
+		return nil, fmt.Errorf("evalAtom: cannot evaluate atom type `%v`", s.String())
 	}
-	val, err := strconv.ParseFloat(s.Tok.Value, 64)
+	f := new(big.Float)
+	_, err := fmt.Sscan(s.Tok.Value, f)
 	if err != nil {
 		return nil, fmt.Errorf("evalAtom: %w", err)
 	}
-	return &val, nil
+	return f, nil
 }
-func (s *SExpr) evalNil() (*float64, error) { return nil, nil }
-func (s *SExpr) evalList() (*float64, error) {
+func (s *SExpr) evalNil() (*big.Float, error) { return nil, nil }
+func (s *SExpr) evalList() (*big.Float, error) {
 	if s == nil || s.Args == nil || len(s.Args) == 0 || !s.Args[0].IsOp() {
 		return nil, nil
 	}
 	op := s.Args[0]
-	flatvals := []float64{}
+	flatvals := []big.Float{}
 	operands := s.Args[1:]
 	for _, operand := range operands {
 		if operand.IsOp() {
@@ -332,8 +330,8 @@ func (d *SExprDumper) StdoutWrite(s *SExpr) {
 func main() {
 	dumper := SExprDumper{Indent: 2}
 	stdin := bufio.NewReader(os.Stdin)
-    fmt.Println("prec v1")
-    fmt.Println("The calculator with the lispy dialect.")
+	fmt.Println("prec v1")
+	fmt.Println("The precision calculator with the lispy dialect.")
 	for {
 		fmt.Printf("; ")
 		raw, _ := stdin.ReadString('\n')
@@ -356,6 +354,16 @@ func main() {
 		if val == nil {
 			continue
 		}
-		fmt.Println(*val)
+		prec := int(val.Prec())
+		acc := val.Acc()
+		if acc == big.Exact {
+			fmt.Printf("%s ", acc)
+			if val.IsInt() {
+				prec = 0
+			} else {
+				prec = 1
+			}
+		}
+		fmt.Printf("%s\n", val.Text('f', prec))
 	}
 }

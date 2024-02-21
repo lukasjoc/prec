@@ -1,6 +1,5 @@
 TODO:
 ---
-todo: https://pkg.go.dev/math/big support
 todo: lexer should support floats and neg. numbers
 todo: concurrent eval of sublists
 todo: concurrent visiting
