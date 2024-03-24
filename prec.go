@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lukasjoc/prec/readline"
+	"github.com/lukasjoc/prec/internal/readline"
 )
 
 // func handleInput(line string, dumper sexpr.Dumper) error {
@@ -48,10 +48,8 @@ outer:
 		switch input.Key() {
 		case readline.KeyArrowLeft:
 			fmt.Printf("<")
-			break
 		case readline.KeyArrowRight:
 			fmt.Printf(">")
-			break
 		case readline.KeyRune:
 			input := input.(readline.RuneInput)
 			switch input.Value() {
