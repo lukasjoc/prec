@@ -13,19 +13,19 @@ import (
 // event system
 // in memory history
 
-type InputEventType int
+type KeyType int
 
 const (
-	InputEventGeneric InputEventType = iota
-	InputEventArrrowLeft
-	InputEventArrowRight
+	KeyRune KeyType = iota
+	KeyInvalid
+	KeyArrowLeft
+	KeyArrowRight
 )
 
-type Readline struct {
-	sc        *bufio.Scanner
-	buf       bytes.Buffer
-	bufpos    uint16
-	bufposmax uint16
+// TODO: i dont like it.. but we can refactor it later (to complicated like this)
+var termcodes = map[KeyType]termcode{
+	KeyArrowRight: {"\033[C", nil},
+	KeyArrowLeft:  {"\033[D", nil},
 }
 
 // TODO: make more generic (add proper parser for terminal codes)
@@ -34,6 +34,7 @@ type termcode struct {
 	bytes []byte
 }
 
+func (ts *termcode) Len() int { return len(ts.code) }
 func (ts *termcode) Bytes() []byte {
 	if ts.bytes != nil {
 		return ts.bytes
@@ -43,49 +44,51 @@ func (ts *termcode) Bytes() []byte {
 	return b
 }
 
-func (ts *termcode) Len() int { return len(ts.code) }
-
-// TODO: i dont like it.. but we can refactor it later (to complicated like this)
-var termcodes = map[InputEventType]termcode{
-	InputEventArrowRight: {"\033[C", nil},
-	InputEventArrrowLeft: {"\033[D", nil},
+// TODO: do we even need buffered scanning?
+// TODO: do we even need a bytes.Buffer?
+type Readline struct {
+	sc        *bufio.Scanner
+	buf       bytes.Buffer
+	pos       uint16
+	linewidth uint16
 }
 
 func New(file *os.File) Readline {
 	sc := bufio.NewScanner(file)
 	sc.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		// TODO: handle errors and atEOF correctly
 		// check for terminal esc patterns
 		for typ, code := range termcodes {
 			l := code.Len()
 			if bytes.Equal(data[0:l], code.Bytes()) {
 				switch typ {
-				case InputEventArrowRight:
-					return l, []byte{byte(InputEventArrowRight)}, nil
-				case InputEventArrrowLeft:
-					return l, []byte{byte(InputEventArrrowLeft)}, nil
+				case KeyArrowRight:
+					return l, []byte{byte(KeyArrowRight)}, nil
+				case KeyArrowLeft:
+					return l, []byte{byte(KeyArrowLeft)}, nil
 				}
 			}
 		}
 		// else we want to read a single byte
-		return 1, []byte{byte(InputEventGeneric), data[0]}, nil
+		return 1, []byte{byte(KeyRune), data[0]}, nil
 	})
 	return Readline{
 		sc:        sc,
 		buf:       bytes.Buffer{},
-		bufpos:    0,
-		bufposmax: 90,
+		pos:       0,
+		linewidth: 90,
 	}
 }
 
 func (r *Readline) withinEditorBounds() bool {
-	return r.bufpos > 1 && r.bufpos < r.bufposmax
+	return r.pos > 1 && r.pos < r.linewidth
 }
 
 func (r *Readline) MoveLeft() {
 	if !r.withinEditorBounds() {
 		return
 	}
-	r.bufpos -= 1
+	r.pos -= 1
 	fmt.Print("\033[1D")
 }
 
@@ -93,7 +96,7 @@ func (r *Readline) MoveRight() {
 	if !r.withinEditorBounds() {
 		return
 	}
-	r.bufpos += 1
+	r.pos += 1
 	fmt.Print("\033[1C")
 }
 
@@ -105,60 +108,45 @@ func (r *Readline) Put() {
 
 func (r *Readline) MoveToNextLine() {
 	r.buf = bytes.Buffer{}
-	r.bufpos = 0
+	r.pos = 0
 	fmt.Print("\033[1E")
 }
 
-type Input struct {
-	Key   InputEventType
-	Bytes *[]byte
+type Input interface {
+	Key() KeyType
 }
+
+type RuneInput struct {
+	typ   KeyType
+	value rune
+}
+
+func (i RuneInput) Key() KeyType { return i.typ }
+func (i *RuneInput) Value() rune { return i.value }
+
+type KeyInput struct {
+	typ KeyType
+}
+
+func (i KeyInput) Key() KeyType { return i.typ }
 
 func (r *Readline) Poll() Input {
 	r.sc.Scan()
 	b := r.sc.Bytes()
 
 	// TODO: store the events somewhere in the readline and return ptrs instead
-	switch InputEventType(b[0]) {
-	case InputEventGeneric:
-		a := b[0:]
-		return Input{InputEventGeneric, &a}
-	case InputEventArrrowLeft:
-		return Input{InputEventArrrowLeft, nil}
-	case InputEventArrowRight:
-		return Input{InputEventArrowRight, nil}
+	// TODO: actually have a key event queue and maybe even batching
+	switch KeyType(b[0]) {
+	case KeyArrowLeft:
+		return KeyInput{KeyArrowLeft}
+	case KeyArrowRight:
+		return KeyInput{KeyArrowRight}
+	case KeyRune:
+		// we know that there is only a single character byte in here
+		// otherwise something else went wrong. (^ Handle errors better)
+		// NOTE: that we only know this in here once we know the key code is KeyRune
+		rest := b[1:]
+		return RuneInput{KeyRune, rune(rest[0])}
 	}
-	return Input{InputEventGeneric, nil}
-
-	// switch b {
-	// case KeyEsc:
-	// 	// TODO: actually have a key event queue and maybe even batching
-	// 	b, _ := r.reader.ReadByte()
-	// 	switch b {
-	// 	case KeyOpenBracket:
-	// 		b, _ := r.reader.ReadByte()
-	// 		// TODO: ESC[#A	moves cursor up # lines
-	// 		// TODO: ESC[#B	moves cursor down # lines
-	// 		switch b {
-	//
-	// 		// ESC[#C	moves cursor right # columns
-	// 		case KeyC:
-	// 			r.MoveRight()
-	// 			break
-	//
-	// 		// ESC[#D   moves cursor left # columns
-	// 		case KeyD:
-	// 			r.MoveLeft()
-	// 			break
-	// 		}
-	// 	}
-	// // case KeyEnter, KeyEnter1:
-	// // 	r.MoveToNextLine()
-	// // 	break
-	// // case KeyBackspace:
-	// // 	// TODO: remove content with backspace
-	// // 	// need curr cursor pos + buffer pos etc.. first factor out
-	// // 	break
-	// default:
-	// }
+	return KeyInput{KeyInvalid}
 }

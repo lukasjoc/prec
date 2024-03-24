@@ -42,21 +42,24 @@ func main() {
 	defer readline.ResetTerminalRawMode(os.Stdin, canon)
 
 	rl := readline.New(os.Stdin)
+outer:
 	for {
 		input := rl.Poll()
-		switch input.Key {
-		case readline.InputEventGeneric:
-			if input.Bytes == nil {
-				continue
+		switch input.Key() {
+		case readline.KeyArrowLeft:
+			fmt.Printf("<")
+			break
+		case readline.KeyArrowRight:
+			fmt.Printf(">")
+			break
+		case readline.KeyRune:
+			input := input.(readline.RuneInput)
+			switch input.Value() {
+			case 'q', 'Q':
+				break outer
+			default:
+				fmt.Printf("%c", input.Value())
 			}
-			fmt.Print(string(*input.Bytes))
-			break
-		case readline.InputEventArrrowLeft:
-			fmt.Print("<")
-			break
-		case readline.InputEventArrowRight:
-			fmt.Print(">")
-			break
 		}
 	}
 }
