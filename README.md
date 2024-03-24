@@ -2,9 +2,8 @@
 
 > The precision calculator with the lispy dialect
 
-Development:
+Usage:
 ```
-./build;
-
-rlwrap -A prec
+./build
+prec
 ```

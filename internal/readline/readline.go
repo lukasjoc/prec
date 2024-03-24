@@ -6,12 +6,13 @@ import (
 	"os"
 )
 
-// TODO:
-// pos movement functions
-// in memory history
-
 // TODO: do we even need buffered scanning?
 // TODO: do we even need a bytes.Buffer?
+// TODO: better general readline behavour
+// TODO: keep bounds of line with cursor movements
+// TODO: pos movement functions
+// TODO: backspace support
+// TODO: in memory history
 type Readline struct {
 	sc        *Scanner[Input]
 	buf       bytes.Buffer
@@ -31,7 +32,7 @@ func New(file *os.File) Readline {
 }
 
 func (r *Readline) withinEditorBounds() bool {
-	return r.pos > 1 && r.pos < r.linewidth
+	return r.pos > 0 && r.pos <= r.linewidth
 }
 
 func (r *Readline) MoveLeft() {
@@ -50,16 +51,27 @@ func (r *Readline) MoveRight() {
 	fmt.Print("\033[1C")
 }
 
-func (r *Readline) Put() {
-	// TODO: do not erase whole line
-	fmt.Print("\033[2K\r")
-	fmt.Print(r.buf.String())
-}
-
 func (r *Readline) MoveToNextLine() {
-	r.buf = bytes.Buffer{}
 	r.pos = 0
 	fmt.Print("\033[1E")
+}
+
+func (r *Readline) ClearLine() {
+	r.pos = 0
+	r.buf = bytes.Buffer{}
+	fmt.Print("\033[2K\r")
+}
+
+func (r *Readline) Text() string {
+	return r.buf.String()
+}
+
+func (r *Readline) Put(ch rune) {
+	r.pos += 1
+	r.buf.WriteRune(ch)
+	// TODO: do not erase whole line
+	fmt.Print("\033[2K\r")
+	fmt.Print(r.Text())
 }
 
 func (r *Readline) Poll() Input {
