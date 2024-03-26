@@ -1,0 +1,10 @@
+= prec
+
+[quote]
+The precision calculator with the lispy dialect
+
+Usage:
+[,bash]
+----
+./build
+----

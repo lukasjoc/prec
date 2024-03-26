@@ -56,7 +56,7 @@ func (r *Readline) MoveToNextLine() {
 	fmt.Print("\033[1E")
 }
 
-func (r *Readline) ClearLine() {
+func (r *Readline) ResetLine() {
 	r.pos = 0
 	r.buf = bytes.Buffer{}
 	fmt.Print("\033[2K\r")
