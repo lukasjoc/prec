@@ -4,77 +4,75 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"strings"
 
-	"github.com/lukasjoc/prec/internal/readline"
 	"github.com/lukasjoc/prec/internal/sexpr"
+	"golang.org/x/term"
 )
 
 func main() {
-	old, _ := readline.GetTerminalMode(os.Stdin)
-	readline.SetTerminalRawMode(os.Stdin, old)
-	defer readline.ResetTerminalRawMode(os.Stdin, old)
+	old, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(fmt.Errorf("could not enter raw mode: %w", err))
+	}
+	defer term.Restore(int(os.Stdin.Fd()), old)
 
-	rl := readline.New(os.Stdin)
-outer:
+	vt := term.NewTerminal(os.Stdin, "> ")
 	for {
-		input := rl.Poll()
-		switch input.Key() {
-		case readline.KeyArrowLeft:
-			rl.MoveLeft()
-		case readline.KeyArrowRight:
-			rl.MoveRight()
-		case readline.KeyRune:
-			input := input.(readline.RuneInput)
-			switch input.Value() {
-			case '\r', '\n':
-				line := rl.Text()
-				if line == "quit" {
-					rl.ResetLine()
-					break outer
-				}
-				rl.MoveToNextLine()
-				rl.ResetLine()
-
-				builder := sexpr.NewBuilder(line)
-				s, err := builder.Build()
-				if errors.Is(err, io.EOF) {
-					continue
-				}
-				if err != nil {
-					fmt.Printf("Error: %v\n", err)
-					rl.ResetLine()
-					continue
-				}
-				s.Visit(func(s *sexpr.SExpr, ctx *sexpr.SExprVisitCtx) {
-					if s == nil {
-						return
-					}
-					fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String())
-					rl.ResetLine()
-				}, &sexpr.SExprVisitCtx{Depth: 0})
-				// val, err := s.Eval()
-				// if err != nil {
-				// 	fmt.Printf("ERROR: could not evaluate sexpr from `%s` %v", line, err)
-				// 	rl.ResetLine()
-				// }
-				// if val != nil {
-				// 	prec := int(val.Prec())
-				// 	acc := val.Acc()
-				// 	if acc == big.Exact {
-				// 		fmt.Printf("%s ", acc)
-				// 		if val.IsInt() {
-				// 			prec = 0
-				// 		} else {
-				// 			prec = 1
-				// 		}
-				// 	}
-				// 	fmt.Print(val.Text('f', prec))
-				// }
-			default:
-				rl.Put(input.Value())
+		rawLine, err := vt.ReadLine()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		line := strings.Trim(rawLine, " ")
+		if line == "help" {
+			fmt.Println("Example: (+ 1 2)")
+			fmt.Print("\033[2K\r")
+			fmt.Println("quit, exit exit the repl")
+			fmt.Print("\033[2K\r")
+			fmt.Println("help print help")
+			fmt.Print("\033[2K\r")
+			continue
+		}
+		if line == "quit" || line == "exit" {
+			break
+		}
+		builder := sexpr.NewBuilder(line)
+		s, err := builder.Build()
+		if errors.Is(err, io.EOF) {
+			continue
+		}
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			fmt.Print("\033[2K\r")
+			continue
+		}
+		s.Visit(func(s *sexpr.SExpr, ctx *sexpr.SExprVisitCtx) {
+			if s == nil {
+				return
 			}
+			fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String())
+			fmt.Print("\033[2K\r")
+		}, &sexpr.SExprVisitCtx{Depth: 0})
+		val, err := s.Eval()
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			fmt.Print("\033[2K\r")
+		}
+		if val != nil {
+			prec := int(val.Prec())
+			acc := val.Acc()
+			if acc == big.Exact {
+				fmt.Printf("%s ", acc)
+				if val.IsInt() {
+					prec = 0
+				} else {
+					prec = 1
+				}
+			}
+			fmt.Println(val.Text('f', prec))
+			fmt.Print("\033[2K\r")
 		}
 	}
 }
