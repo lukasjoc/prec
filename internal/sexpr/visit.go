@@ -1,26 +1,34 @@
 package sexpr
 
-type sexprVisitFunc = func(s *SExpr, ctx *sexprVisitCtx)
-type sexprVisitCtx struct {
-	// TODO: imagine a max depth for savety :)
-	depth int
+import (
+	"fmt"
+	"math"
+)
+
+type SExprVisitFunc = func(s *SExpr, ctx *SExprVisitCtx)
+type SExprVisitCtx struct {
+	Depth uint8
 }
 
-func (s *SExpr) visitAtom(f sexprVisitFunc, ctx *sexprVisitCtx) { f(s, ctx) }
-func (s *SExpr) visitNil(f sexprVisitFunc, ctx *sexprVisitCtx)  { f(s, ctx) }
-func (s *SExpr) visitList(f sexprVisitFunc, ctx *sexprVisitCtx) {
+func (s *SExpr) visitAtom(f SExprVisitFunc, ctx *SExprVisitCtx) { f(s, ctx) }
+func (s *SExpr) visitNil(f SExprVisitFunc, ctx *SExprVisitCtx)  { f(s, ctx) }
+func (s *SExpr) visitList(f SExprVisitFunc, ctx *SExprVisitCtx) {
 	f(s, ctx)
 	if s.elements == nil {
 		return
 	}
-	ctx.depth += 1
+	if ctx.Depth+1 == math.MaxUint8 {
+		// TODO: prob should touch the sig here
+		panic(fmt.Errorf("depth would exceed limit of visitor: max %d", math.MaxUint8))
+	}
+	ctx.Depth += 1
 	for _, element := range s.elements {
 		element.Visit(f, ctx)
 	}
-	ctx.depth -= 1
+	ctx.Depth -= 1
 }
 
-func (s *SExpr) Visit(f sexprVisitFunc, ctx *sexprVisitCtx) {
+func (s *SExpr) Visit(f SExprVisitFunc, ctx *SExprVisitCtx) {
 	if s.isAtom() {
 		s.visitAtom(f, ctx)
 	} else if s.isNil() {

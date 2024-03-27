@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -10,49 +9,70 @@ import (
 	"strings"
 
 	"github.com/lukasjoc/prec/internal/sexpr"
+	"golang.org/x/term"
 )
 
-func printPreamble() {
-	fmt.Println("prec v1")
-	fmt.Println("The precision calculator with the lispy dialect.")
-}
-
 func main() {
-	dumper := sexpr.NewDumper()
-	stdin := bufio.NewReader(os.Stdin)
-	printPreamble()
+	old, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(fmt.Errorf("could not enter raw mode: %w", err))
+	}
+	defer term.Restore(int(os.Stdin.Fd()), old)
+
+	vt := term.NewTerminal(os.Stdin, "> ")
 	for {
-		fmt.Printf("; ")
-		raw, _ := stdin.ReadString('\n')
-		line := strings.TrimSpace(raw)
-		if len(line) == 0 {
+		rawLine, err := vt.ReadLine()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		line := strings.Trim(rawLine, " ")
+		if line == "help" {
+			fmt.Println("Example: (+ 1 2)")
+			fmt.Print("\033[2K\r")
+			fmt.Println("quit, exit exit the repl")
+			fmt.Print("\033[2K\r")
+			fmt.Println("help print help")
+			fmt.Print("\033[2K\r")
 			continue
+		}
+		if line == "quit" || line == "exit" {
+			break
 		}
 		builder := sexpr.NewBuilder(line)
 		s, err := builder.Build()
-		if err != nil && !errors.Is(err, io.EOF) {
-			fmt.Printf("ERROR: could not build sexpr from `%s` %v\n", line, err)
+		if errors.Is(err, io.EOF) {
 			continue
 		}
-		dumper.Dump(&s)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			fmt.Print("\033[2K\r")
+			continue
+		}
+		s.Visit(func(s *sexpr.SExpr, ctx *sexpr.SExprVisitCtx) {
+			if s == nil {
+				return
+			}
+			fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String())
+			fmt.Print("\033[2K\r")
+		}, &sexpr.SExprVisitCtx{Depth: 0})
 		val, err := s.Eval()
 		if err != nil {
-			fmt.Printf("ERROR: could not evaluate sexpr from `%s` %v\n", line, err)
-			continue
+			fmt.Printf("Error: %v\n", err)
+			fmt.Print("\033[2K\r")
 		}
-		if val == nil {
-			continue
-		}
-		prec := int(val.Prec())
-		acc := val.Acc()
-		if acc == big.Exact {
-			fmt.Printf("%s ", acc)
-			if val.IsInt() {
-				prec = 0
-			} else {
-				prec = 1
+		if val != nil {
+			prec := int(val.Prec())
+			acc := val.Acc()
+			if acc == big.Exact {
+				fmt.Printf("%s ", acc)
+				if val.IsInt() {
+					prec = 0
+				} else {
+					prec = 1
+				}
 			}
+			fmt.Println(val.Text('f', prec))
+			fmt.Print("\033[2K\r")
 		}
-		fmt.Printf("%s\n", val.Text('f', prec))
 	}
 }
