@@ -3,9 +3,5 @@
 set -ex
 
 rm -rf internal/**/*_string.go
-
-#TODO: there must be a way to do this automatically
-cd internal/lex/; go generate -x; cd -;
-cd internal/sexpr/; go  generate -x; cd -;
-
+go generate -x ./...
 go install
