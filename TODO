@@ -1,5 +1,6 @@
 @Type: todoreadme
 
+- simple function prelude
 - lexer should support floats
 - use a proper peaker
 - remove input source for tok from parsetree and replace with offset-len-span approach
