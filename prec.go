@@ -18,13 +18,22 @@ var (
 	evalContent = flag.String("e", "", "Directly evaluate an expression and print the result to stdout")
 )
 
+func replPrintln(msg string) {
+	fmt.Println(msg)
+	fmt.Print("\033[2K\r")
+}
+
+func replPrintf(msg string, args ...any) {
+	fmt.Printf(msg, args...)
+	fmt.Print("\033[2K\r")
+}
+
 func openRepl() {
 	old, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
 		panic(fmt.Errorf("could not enter raw mode: %w", err))
 	}
 	defer term.Restore(int(os.Stdin.Fd()), old)
-
 	vt := term.NewTerminal(os.Stdin, "> ")
 	for {
 		rawLine, err := vt.ReadLine()
@@ -33,16 +42,24 @@ func openRepl() {
 		}
 		line := strings.Trim(rawLine, " ")
 		if line == "help" {
-			fmt.Println("Example: (+ 1 2)")
-			fmt.Print("\033[2K\r")
-			fmt.Println("quit, exit exit the repl")
-			fmt.Print("\033[2K\r")
-			fmt.Println("help print help")
-			fmt.Print("\033[2K\r")
+			replPrintln("Example: (+ 1 2)")
+			replPrintln("quit|exit   exit the repl")
+			replPrintln("help        print help")
+			replPrintln("verbose     toggle verbose mode")
 			continue
 		}
 		if line == "quit" || line == "exit" {
 			break
+		}
+		if line == "verbose" {
+			if verbose != nil && *verbose {
+				*verbose = false
+                replPrintln("INFO: Verbose mode turned off")
+			} else {
+				*verbose = true
+                replPrintln("INFO: Verbose mode turned on")
+			}
+			continue
 		}
 		builder := sexpr.NewBuilder(line)
 		s, err := builder.Build()
@@ -50,23 +67,20 @@ func openRepl() {
 			continue
 		}
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			fmt.Print("\033[2K\r")
+			replPrintf("Error: %v", err)
 			continue
 		}
-		if verbose != nil && *verbose == true {
+		if verbose != nil && *verbose {
 			s.Visit(func(s *sexpr.SExpr, ctx *sexpr.SExprVisitCtx) {
 				if s == nil {
 					return
 				}
-				fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String())
-				fmt.Print("\033[2K\r")
+				replPrintf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String())
 			}, &sexpr.SExprVisitCtx{Depth: 0})
 		}
 		val, err := s.Eval()
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			fmt.Print("\033[2K\r")
+			replPrintf("Error: %v\n", err)
 		}
 		if val != nil {
 			prec := int(val.Prec())
@@ -79,8 +93,7 @@ func openRepl() {
 					prec = 1
 				}
 			}
-			fmt.Println(val.Text('f', prec))
-			fmt.Print("\033[2K\r")
+            replPrintln(val.Text('f', prec));
 		}
 	}
 }
@@ -98,23 +111,19 @@ func main() {
 		}
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
-			fmt.Print("\033[2K\r")
 			os.Exit(1)
 		}
-
-		if verbose != nil && *verbose == true {
+		if verbose != nil && *verbose {
 			s.Visit(func(s *sexpr.SExpr, ctx *sexpr.SExprVisitCtx) {
 				if s == nil {
 					return
 				}
 				fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String())
-				fmt.Print("\033[2K\r")
 			}, &sexpr.SExprVisitCtx{Depth: 0})
 		}
 		val, err := s.Eval()
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
-			fmt.Print("\033[2K\r")
 		}
 		if val != nil {
 			prec := int(val.Prec())
@@ -128,7 +137,6 @@ func main() {
 				}
 			}
 			fmt.Println(val.Text('f', prec))
-			fmt.Print("\033[2K\r")
 		}
 	}
 }

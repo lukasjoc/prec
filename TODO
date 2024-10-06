@@ -1,9 +1,13 @@
-todo: lexer should support floats and neg. numbers
-todo: concurrent eval of sublists
-todo: concurrent visiting
-todo: remove input source for tok from parsetree and replace with offset-len-span approach
-todo: functions/builtins with predefined prelude of functions like (sqrt, sin, cos, etc.)
-todo: if adding functions/builtins completion in readline editor would be cool
+@Type: todoreadme
 
-maybe: make it turing complete (full lisp)
-maybe: a proper/better execution env with simple bytecode
+- lexer should support and neg. numbers
+- lexer should support floats
+- use a proper peaker
+- remove input source for tok from parsetree and replace with offset-len-span approach
+- functions/builtins with predefined prelude of functions like (sqrt, sin, cos, etc.)
+- if adding functions/builtins completion in readline editor would be cool
+
+? concurrent eval of sublists
+? concurrent visiting
+? make it turing complete (full lisp)
+? a proper/better execution env with simple bytecode (port to tinyVM, need go bindings)
