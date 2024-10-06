@@ -31,15 +31,17 @@ var supportedOpMap = map[byte]bool{
 type Token struct {
 	typ    tokenType
 	offset int
-	value  string
+	value  []byte
 }
 
-func (t *Token) Value() string    { return t.value }
-func (t *Token) String() string   { return t.typ.String() }
-func (t *Token) IsConst() bool    { return t.typ == tokenTypeConst }
-func (t *Token) IsOp() bool       { return t.typ == tokenTypeOp }
-func (t *Token) IsOpenPar() bool  { return t.typ == tokenTypeOpenPar }
-func (t *Token) IsClosePar() bool { return t.typ == tokenTypeClosePar }
+func (t Token) Value() string    { return string(t.value) }
+func (t Token) Bytes() []byte    { return t.value }
+func (t Token) String() string   { return t.typ.String() }
+func (t Token) Offset() int      { return t.offset }
+func (t Token) IsConst() bool    { return t.typ == tokenTypeConst }
+func (t Token) IsOp() bool       { return t.typ == tokenTypeOp }
+func (t Token) IsOpenPar() bool  { return t.typ == tokenTypeOpenPar }
+func (t Token) IsClosePar() bool { return t.typ == tokenTypeClosePar }
 
 type Lexer struct {
 	source []byte
@@ -72,13 +74,16 @@ func (l *Lexer) eatWhile(pred func(ch byte) bool) {
 		l.eat()
 	}
 }
-func (l *Lexer) span(from int, to int) string {
+func (l *Lexer) span(from int, to int) []byte {
 	if len(l.source) == 0 {
-		return ""
+		return nil
 	}
-	return string(l.source)[from:to]
+	return []byte(l.source)[from:to]
 }
+
+// FIXME: Shady bizz
 func (l Lexer) Peek() (*Token, error) { return l.Next() }
+
 func (l *Lexer) SkipWhile(typ tokenType) error {
 	var tokerr error = nil
 	for {
@@ -103,6 +108,14 @@ func (l *Lexer) SkipWhileSpace() {
 	l.SkipWhile(tokenTypeSpace)
 }
 
+func (l *Lexer) isConst(at byte) bool {
+	if unicode.IsDigit(rune(at)) {
+		return true
+	}
+	ch := l.peek()
+	return ch != nullch && (at == '-' || at == '+') && unicode.IsDigit(rune(ch))
+}
+
 func (l *Lexer) Next() (*Token, error) {
 	ch := l.eat()
 	if ch == nullch {
@@ -113,9 +126,8 @@ func (l *Lexer) Next() (*Token, error) {
 		typ = tokenTypeOpenPar
 	} else if ch == ')' {
 		typ = tokenTypeClosePar
-	} else if unicode.IsDigit(rune(ch)) {
+	} else if l.isConst(ch) {
 		// TODO: support for floats
-		// TODO: support for neg. numbers
 		l.eatWhile(func(ch byte) bool { return unicode.IsDigit(rune(ch)) })
 		typ = tokenTypeConst
 	} else if unicode.IsSpace(rune(ch)) {

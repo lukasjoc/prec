@@ -19,7 +19,7 @@ func (s *SExpr) Eval() (*big.Float, error) {
 
 func (s *SExpr) evalAtom() (*big.Float, error) {
 	if s.token == nil || !s.token.IsConst() {
-		return nil, fmt.Errorf("evalAtom: cannot evaluate atom type `%v`", s.String())
+		return nil, fmt.Errorf("evalAtom:%d cannot evaluate atom type `%v`", s.token.Offset(), s.String())
 	}
 	f := new(big.Float)
 	_, err := fmt.Sscan(s.token.Value(), f)

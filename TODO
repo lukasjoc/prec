@@ -1,11 +1,11 @@
 @Type: todoreadme
 
-- lexer should support and neg. numbers
 - lexer should support floats
 - use a proper peaker
 - remove input source for tok from parsetree and replace with offset-len-span approach
 - functions/builtins with predefined prelude of functions like (sqrt, sin, cos, etc.)
 - if adding functions/builtins completion in readline editor would be cool
+- verbose mode should also print the intermediate results of the evaluation process
 
 ? concurrent eval of sublists
 ? concurrent visiting
