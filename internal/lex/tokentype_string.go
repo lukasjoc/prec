@@ -14,13 +14,13 @@ func _() {
 	_ = x[tokenTypeOpenPar-3]
 	_ = x[tokenTypeClosePar-4]
 	_ = x[tokenTypeSpace-5]
-	_ = x[tokenTypeDunno-6]
+	_ = x[tokenTypeInvalid-6]
 	_ = x[tokenTypeEof-7]
 }
 
-const _tokenType_name = "tokenTypeConsttokenTypeOptokenTypeIdenttokenTypeOpenPartokenTypeClosePartokenTypeSpacetokenTypeDunnotokenTypeEof"
+const _tokenType_name = "tokenTypeConsttokenTypeOptokenTypeIdenttokenTypeOpenPartokenTypeClosePartokenTypeSpacetokenTypeInvalidtokenTypeEof"
 
-var _tokenType_index = [...]uint8{0, 14, 25, 39, 55, 72, 86, 100, 112}
+var _tokenType_index = [...]uint8{0, 14, 25, 39, 55, 72, 86, 102, 114}
 
 func (i tokenType) String() string {
 	if i >= tokenType(len(_tokenType_index)-1) {

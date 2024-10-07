@@ -43,9 +43,9 @@ func openRepl() {
 		line := strings.Trim(rawLine, " ")
 		if line == "help" {
 			replPrintln("Example: (+ 1 2)")
-			replPrintln("quit|exit  exit the repl")
-			replPrintf("verbose     toggle verbose mode (enabled: %v)\n", verbose != nil && *verbose)
-			replPrintln("help       print help")
+			replPrintln("quit|exit exit the repl")
+			replPrintf("verbose   toggle verbose mode (enabled: %v)\n", verbose != nil && *verbose)
+			replPrintln("help      print help")
 			continue
 		}
 		if line == "quit" || line == "exit" {
@@ -67,7 +67,7 @@ func openRepl() {
 			continue
 		}
 		if err != nil {
-			replPrintf("Error: %v", err)
+			replPrintf("Error: %v\n", err)
 			continue
 		}
 		if verbose != nil && *verbose {
@@ -81,6 +81,7 @@ func openRepl() {
 		val, err := s.Eval()
 		if err != nil {
 			replPrintf("Error: %v\n", err)
+			continue
 		}
 		if val != nil {
 			prec := int(val.Prec())
@@ -124,6 +125,7 @@ func main() {
 		val, err := s.Eval()
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
 		}
 		if val != nil {
 			prec := int(val.Prec())

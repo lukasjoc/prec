@@ -90,7 +90,7 @@ func (b *Builder) atom(tok *lex.Token) (SExpr, error) {
 func (b *Builder) list(tok *lex.Token) (SExpr, error) {
 	tok2, err := b.peek()
 	if err != nil {
-		return SExpr{}, fmt.Errorf("list: unterminated list %w", err)
+		return SExpr{}, err
 	}
 	// TODO: fix error with ignored trailing parens in lists
 	// that should lead to a ErrUnterminatedList
@@ -103,7 +103,7 @@ func (b *Builder) list(tok *lex.Token) (SExpr, error) {
 	for {
 		tok, err := b.peek()
 		if err != nil {
-			tokerr = fmt.Errorf("list: unterminated list %w", err)
+			tokerr = err
 			break
 		}
 		if tok.IsClosePar() {

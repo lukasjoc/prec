@@ -16,7 +16,7 @@ const (
 	tokenTypeOpenPar
 	tokenTypeClosePar
 	tokenTypeSpace
-	tokenTypeDunno
+	tokenTypeInvalid
 	tokenTypeEof
 )
 
@@ -122,32 +122,67 @@ func (l *Lexer) isConst(at byte) bool {
 	return ch != eof && (at == '-' || at == '+') && unicode.IsDigit(rune(ch))
 }
 
+func canStartIdent(ch byte) bool {
+	// TODO: support more??
+	return unicode.IsLetter(rune(ch))
+}
+
+func (l *Lexer) tryParseIdent(at byte, typ *tokenType) {
+	if !canStartIdent(at) {
+		panic(fmt.Errorf("bad assumptions:%d char `%v` cannot start an ident", l.pos, at))
+	}
+	l.eatWhile(func(ch byte) bool { return !unicode.IsSpace(rune(ch)) && ch != '(' && ch != ')' })
+	// TODO: Only want to allow [A-z0-9_-'] Probably have to do the same check
+	// if valid else backtrack thingy as in the constants parser.
+	*typ = tokenTypeIdent
+}
+
+func (l *Lexer) tryParseConst(at byte, typ *tokenType) {
+	if !l.isConst(at) {
+		return
+	}
+	// TODO: support for floats
+	start := l.pos
+	leftStart := l.left
+	l.eatWhile(func(ch byte) bool { return unicode.IsDigit(rune(ch)) })
+	// check if next char after consume is valid {space | brace | eof}. If it's
+	// a letter for example that means that it parsed the number from sth like
+	// `42069f` which is not valid. (Obvsly)
+	ch := l.peek()
+	if ch != eof && ch != '(' && ch != ')' && !unicode.IsSpace(rune(ch)) {
+		l.pos = start
+		l.left = leftStart
+		return
+	}
+	*typ = tokenTypeConst
+}
+
 func (l *Lexer) Next() (*Token, error) {
 	ch := l.eat()
 	if ch == eof {
 		return nil, fmt.Errorf("next: %w", io.EOF)
 	}
-	typ := tokenTypeDunno
+	typ := tokenTypeInvalid
 	if ch == '(' {
 		typ = tokenTypeOpenPar
 	} else if ch == ')' {
 		typ = tokenTypeClosePar
-	} else if unicode.IsLetter(rune(ch)) {
-        // this should throw an error (usually) but we somehow dont have any
-        // error reporting here. (For some stupid reason).. So we FIXME: this later...
-		l.eatWhile(func(ch byte) bool { return !unicode.IsSpace(rune(ch)) && ch != '(' && ch != ')' })
-		typ = tokenTypeIdent
-	} else if l.isConst(ch) {
-		// TODO: support for floats
-		l.eatWhile(func(ch byte) bool { return unicode.IsDigit(rune(ch)) })
-		typ = tokenTypeConst
-	} else if unicode.IsSpace(rune(ch)) {
-		l.eatWhile(func(ch byte) bool { return unicode.IsSpace(rune(ch)) })
-		typ = tokenTypeSpace
-	} else if isSupportedOp(ch) {
-		typ = tokenTypeOp
+	} else {
+		if canStartIdent(ch) {
+			l.tryParseIdent(ch, &typ)
+		} else if l.isConst(ch) {
+			l.tryParseConst(ch, &typ)
+		} else if unicode.IsSpace(rune(ch)) {
+			l.eatWhile(func(ch byte) bool { return unicode.IsSpace(rune(ch)) })
+			typ = tokenTypeSpace
+		} else if isSupportedOp(ch) {
+			typ = tokenTypeOp
+		}
 	}
 	toklen := len(l.source) - l.left
+	if typ == tokenTypeInvalid {
+		return nil, fmt.Errorf("next:%d bad syntax `%v`", l.pos, string(l.source[l.pos]))
+	}
 	tok := &Token{typ, l.last, l.span(l.last, toklen)}
 	l.last = toklen
 	return tok, nil
