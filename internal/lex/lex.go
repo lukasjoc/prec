@@ -7,11 +7,12 @@ import (
 )
 
 //go:generate stringer -type=tokenType
-type tokenType int
+type tokenType uint8
 
 const (
 	tokenTypeConst tokenType = iota
 	tokenTypeOp
+	tokenTypeIdent
 	tokenTypeOpenPar
 	tokenTypeClosePar
 	tokenTypeSpace
@@ -19,13 +20,16 @@ const (
 	tokenTypeEof
 )
 
-const nullch byte = 0x000
+const eof byte = 0xFF // 255
 
-var supportedOpMap = map[byte]bool{
-	'+': true,
-	'-': true,
-	'*': true,
-	'/': true,
+func isSupportedOp(ch byte) bool {
+	// TODO: check this should be inlined ...
+	switch ch {
+	case '+', '-', '*', '/':
+		return true
+	default:
+		return false
+	}
 }
 
 type Token struct {
@@ -40,6 +44,7 @@ func (t Token) String() string   { return t.typ.String() }
 func (t Token) Offset() int      { return t.offset }
 func (t Token) IsConst() bool    { return t.typ == tokenTypeConst }
 func (t Token) IsOp() bool       { return t.typ == tokenTypeOp }
+func (t Token) IsIdent() bool    { return t.typ == tokenTypeIdent }
 func (t Token) IsOpenPar() bool  { return t.typ == tokenTypeOpenPar }
 func (t Token) IsClosePar() bool { return t.typ == tokenTypeClosePar }
 
@@ -56,7 +61,7 @@ func (l *Lexer) peek() byte {
 	if l.peekable() {
 		return l.source[l.pos+1]
 	}
-	return nullch
+	return eof
 }
 func (l *Lexer) eat() byte {
 	if l.peekable() {
@@ -64,11 +69,12 @@ func (l *Lexer) eat() byte {
 		l.left -= 1
 		return l.source[l.pos]
 	}
-	return nullch
+	return eof
 }
 func (l *Lexer) eatWhile(pred func(ch byte) bool) {
 	for {
-		if !pred(l.peek()) {
+		ch := l.peek()
+		if ch == eof || !pred(ch) {
 			break
 		}
 		l.eat()
@@ -113,12 +119,12 @@ func (l *Lexer) isConst(at byte) bool {
 		return true
 	}
 	ch := l.peek()
-	return ch != nullch && (at == '-' || at == '+') && unicode.IsDigit(rune(ch))
+	return ch != eof && (at == '-' || at == '+') && unicode.IsDigit(rune(ch))
 }
 
 func (l *Lexer) Next() (*Token, error) {
 	ch := l.eat()
-	if ch == nullch {
+	if ch == eof {
 		return nil, fmt.Errorf("next: %w", io.EOF)
 	}
 	typ := tokenTypeDunno
@@ -126,6 +132,11 @@ func (l *Lexer) Next() (*Token, error) {
 		typ = tokenTypeOpenPar
 	} else if ch == ')' {
 		typ = tokenTypeClosePar
+	} else if unicode.IsLetter(rune(ch)) {
+        // this should throw an error (usually) but we somehow dont have any
+        // error reporting here. (For some stupid reason).. So we FIXME: this later...
+		l.eatWhile(func(ch byte) bool { return !unicode.IsSpace(rune(ch)) && ch != '(' && ch != ')' })
+		typ = tokenTypeIdent
 	} else if l.isConst(ch) {
 		// TODO: support for floats
 		l.eatWhile(func(ch byte) bool { return unicode.IsDigit(rune(ch)) })
@@ -133,7 +144,7 @@ func (l *Lexer) Next() (*Token, error) {
 	} else if unicode.IsSpace(rune(ch)) {
 		l.eatWhile(func(ch byte) bool { return unicode.IsSpace(rune(ch)) })
 		typ = tokenTypeSpace
-	} else if supportedOpMap[ch] {
+	} else if isSupportedOp(ch) {
 		typ = tokenTypeOp
 	}
 	toklen := len(l.source) - l.left

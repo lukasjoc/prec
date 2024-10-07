@@ -6,6 +6,8 @@ import (
 	"math/big"
 )
 
+// TODO: sep package
+
 func (s *SExpr) Eval() (*big.Float, error) {
 	if s.isAtom() {
 		return s.evalAtom()

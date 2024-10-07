@@ -10,19 +10,20 @@ func _() {
 	var x [1]struct{}
 	_ = x[tokenTypeConst-0]
 	_ = x[tokenTypeOp-1]
-	_ = x[tokenTypeOpenPar-2]
-	_ = x[tokenTypeClosePar-3]
-	_ = x[tokenTypeSpace-4]
-	_ = x[tokenTypeDunno-5]
-	_ = x[tokenTypeEof-6]
+	_ = x[tokenTypeIdent-2]
+	_ = x[tokenTypeOpenPar-3]
+	_ = x[tokenTypeClosePar-4]
+	_ = x[tokenTypeSpace-5]
+	_ = x[tokenTypeDunno-6]
+	_ = x[tokenTypeEof-7]
 }
 
-const _tokenType_name = "tokenTypeConsttokenTypeOptokenTypeOpenPartokenTypeClosePartokenTypeSpacetokenTypeDunnotokenTypeEof"
+const _tokenType_name = "tokenTypeConsttokenTypeOptokenTypeIdenttokenTypeOpenPartokenTypeClosePartokenTypeSpacetokenTypeDunnotokenTypeEof"
 
-var _tokenType_index = [...]uint8{0, 14, 25, 41, 58, 72, 86, 98}
+var _tokenType_index = [...]uint8{0, 14, 25, 39, 55, 72, 86, 100, 112}
 
 func (i tokenType) String() string {
-	if i < 0 || i >= tokenType(len(_tokenType_index)-1) {
+	if i >= tokenType(len(_tokenType_index)-1) {
 		return "tokenType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _tokenType_name[_tokenType_index[i]:_tokenType_index[i+1]]

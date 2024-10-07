@@ -43,9 +43,9 @@ func openRepl() {
 		line := strings.Trim(rawLine, " ")
 		if line == "help" {
 			replPrintln("Example: (+ 1 2)")
-			replPrintln("quit|exit   exit the repl")
-			replPrintln("help        print help")
-			replPrintln("verbose     toggle verbose mode")
+			replPrintln("quit|exit  exit the repl")
+			replPrintf("verbose     toggle verbose mode (enabled: %v)\n", verbose != nil && *verbose)
+			replPrintln("help       print help")
 			continue
 		}
 		if line == "quit" || line == "exit" {
@@ -54,10 +54,10 @@ func openRepl() {
 		if line == "verbose" {
 			if verbose != nil && *verbose {
 				*verbose = false
-                replPrintln("INFO: Verbose mode turned off")
+				replPrintln("INFO: Verbose mode turned off")
 			} else {
 				*verbose = true
-                replPrintln("INFO: Verbose mode turned on")
+				replPrintln("INFO: Verbose mode turned on")
 			}
 			continue
 		}
@@ -93,7 +93,7 @@ func openRepl() {
 					prec = 1
 				}
 			}
-            replPrintln(val.Text('f', prec));
+			replPrintln(val.Text('f', prec))
 		}
 	}
 }

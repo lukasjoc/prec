@@ -1,14 +1,20 @@
 @Type: todoreadme
 
 - simple function prelude
-- lexer should support floats
-- use a proper peaker
-- remove input source for tok from parsetree and replace with offset-len-span approach
-- functions/builtins with predefined prelude of functions like (sqrt, sin, cos, etc.)
-- if adding functions/builtins completion in readline editor would be cool
-- verbose mode should also print the intermediate results of the evaluation process
+  - max, min, avg, med, rev, abs, sqrt, sin, cos etc...
 
-? concurrent eval of sublists
-? concurrent visiting
-? make it turing complete (full lisp)
+- use a proper peeker
+- better traces/ offsets in error reporting
+- support floats (3.14159)
+
+? verbose mode should also print the intermediate results of the evaluation process
+? support fractions nicely (3/4)
+? support e notation (1e6)
+? support noob notation (1_000_0)
+? macro support (now we're proper :D) hygenic?
+? remove input source for tok from parsetree and replace with offset-len-span approach (especially with macro support when we generate subtrees)
+? completion in readline editor would be cool
+? lazy compute,eval (*) evalates default should be lazy (not eval)
 ? a proper/better execution env with simple bytecode (port to tinyVM, need go bindings)
+? plotting :)
+? concurrent eval of sublists, visiting (making it faster)
