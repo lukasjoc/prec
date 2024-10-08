@@ -23,7 +23,6 @@ const (
 const eof byte = 0xFF // 255
 
 func isSupportedOp(ch byte) bool {
-	// TODO: check this should be inlined ...
 	switch ch {
 	case '+', '-', '*', '/':
 		return true
@@ -65,8 +64,8 @@ func (l *Lexer) peek() byte {
 }
 func (l *Lexer) eat() byte {
 	if l.peekable() {
-		l.pos += 1
-		l.left -= 1
+		l.pos++
+		l.left--
 		return l.source[l.pos]
 	}
 	return eof
@@ -90,7 +89,7 @@ func (l *Lexer) span(from int, to int) []byte {
 // FIXME: Shady bizz
 func (l Lexer) Peek() (*Token, error) { return l.Next() }
 
-func (l *Lexer) SkipWhile(typ tokenType) error {
+func (l *Lexer) skipWhile(typ tokenType) error {
 	var tokerr error = nil
 	for {
 		tok, err := l.Peek()
@@ -111,7 +110,7 @@ func (l *Lexer) SkipWhile(typ tokenType) error {
 }
 
 func (l *Lexer) SkipWhileSpace() {
-	l.SkipWhile(tokenTypeSpace)
+	l.skipWhile(tokenTypeSpace)
 }
 
 func (l *Lexer) isConst(at byte) bool {
@@ -126,14 +125,27 @@ func canStartIdent(ch byte) bool {
 	// TODO: support more??
 	return unicode.IsLetter(rune(ch))
 }
+func isIdentChar(ch byte) bool {
+	// TODO: support more??
+	if ch == '-' || ch == '\'' || unicode.IsLetter(rune(ch)) || unicode.IsNumber(rune(ch)) {
+		return true
+	}
+	return false
+}
 
 func (l *Lexer) tryParseIdent(at byte, typ *tokenType) {
 	if !canStartIdent(at) {
 		panic(fmt.Errorf("bad assumptions:%d char `%v` cannot start an ident", l.pos, at))
 	}
-	l.eatWhile(func(ch byte) bool { return !unicode.IsSpace(rune(ch)) && ch != '(' && ch != ')' })
-	// TODO: Only want to allow [A-z0-9_-'] Probably have to do the same check
-	// if valid else backtrack thingy as in the constants parser.
+	start := l.pos
+	leftStart := l.left
+	l.eatWhile(func(ch byte) bool { return isIdentChar(ch) })
+	ch := l.peek()
+	if ch != eof && ch != '(' && ch != ')' && !unicode.IsSpace(rune(ch)) && !isIdentChar(ch) {
+		l.pos = start
+		l.left = leftStart
+		return
+	}
 	*typ = tokenTypeIdent
 }
 
@@ -181,7 +193,7 @@ func (l *Lexer) Next() (*Token, error) {
 	}
 	toklen := len(l.source) - l.left
 	if typ == tokenTypeInvalid {
-		return nil, fmt.Errorf("next:%d bad syntax `%v`", l.pos, string(l.source[l.pos]))
+		return nil, fmt.Errorf("next:%d bad syntax `%s`", l.pos, string(l.source[l.pos]))
 	}
 	tok := &Token{typ, l.last, l.span(l.last, toklen)}
 	l.last = toklen
