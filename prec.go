@@ -18,15 +18,7 @@ var (
 	evalContent = flag.String("e", "", "Directly evaluate an expression and print the result to stdout")
 )
 
-func replPrintln(msg string) {
-	fmt.Println(msg)
-	fmt.Print("\033[2K\r")
-}
-
-func replPrintf(msg string, args ...any) {
-	fmt.Printf(msg, args...)
-	fmt.Print("\033[2K\r")
-}
+const replEndline = "\n\033[2K\r"
 
 func openRepl() {
 	old, err := term.MakeRaw(int(os.Stdin.Fd()))
@@ -42,10 +34,10 @@ func openRepl() {
 		}
 		line := strings.Trim(rawLine, " ")
 		if line == "help" {
-			replPrintln("Example: (+ 1 2)")
-			replPrintln("quit|exit exit the repl")
-			replPrintf("verbose   toggle verbose mode (enabled: %v)\n", verbose != nil && *verbose)
-			replPrintln("help      print help")
+			fmt.Printf("Example: (+ 1 2)%s", replEndline)
+			fmt.Printf("quit|exit exit the repl%s", replEndline)
+			fmt.Printf("verbose   toggle verbose mode (enabled: %v)%s", verbose != nil && *verbose, replEndline)
+			fmt.Printf("help      print help%s", replEndline)
 			continue
 		}
 		if line == "quit" || line == "exit" {
@@ -54,10 +46,10 @@ func openRepl() {
 		if line == "verbose" {
 			if verbose != nil && *verbose {
 				*verbose = false
-				replPrintln("INFO: Verbose mode turned off")
+				fmt.Printf("INFO: Verbose mode turned off%s", replEndline)
 			} else {
 				*verbose = true
-				replPrintln("INFO: Verbose mode turned on")
+				fmt.Printf("INFO: Verbose mode turned on%s", replEndline)
 			}
 			continue
 		}
@@ -67,7 +59,7 @@ func openRepl() {
 			continue
 		}
 		if err != nil {
-			replPrintf("Error: %v\n", err)
+			fmt.Printf("Error: %v%s", err, replEndline)
 			continue
 		}
 		if verbose != nil && *verbose {
@@ -75,12 +67,12 @@ func openRepl() {
 				if s == nil {
 					return
 				}
-				replPrintf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String())
+				fmt.Printf("%s%s%s", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String(), replEndline)
 			}, &sexpr.SExprVisitCtx{Depth: 0})
 		}
 		val, err := s.Eval()
 		if err != nil {
-			replPrintf("Error: %v\n", err)
+			fmt.Printf("Error: %v%s", err, replEndline)
 			continue
 		}
 		if val != nil {
@@ -94,7 +86,7 @@ func openRepl() {
 					prec = 1
 				}
 			}
-			replPrintln(val.Text('f', prec))
+			fmt.Printf("%s%s", val.Text('f', prec), replEndline)
 		}
 	}
 }
@@ -138,7 +130,7 @@ func main() {
 					prec = 1
 				}
 			}
-			fmt.Println(val.Text('f', prec))
+			fmt.Printf("%s\n", val.Text('f', prec))
 		}
 	}
 }
