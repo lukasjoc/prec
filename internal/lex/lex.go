@@ -54,7 +54,8 @@ type Lexer struct {
 	last   int
 }
 
-func New(source string) Lexer   { return Lexer{[]byte(source), len(source), -1, 0} }
+// TODO: should accept io.Reader and `stream` the tokens
+func New(source []byte) *Lexer  { return &Lexer{source, len(source), -1, 0} }
 func (l *Lexer) peekable() bool { return l.pos+1 < len(l.source) }
 func (l *Lexer) peek() byte {
 	if l.peekable() {
@@ -122,11 +123,11 @@ func (l *Lexer) isConst(at byte) bool {
 }
 
 func canStartIdent(ch byte) bool {
-	// TODO: support more??
+	//FIXME: Why is this not inlined?
 	return unicode.IsLetter(rune(ch))
 }
+
 func isIdentChar(ch byte) bool {
-	// TODO: support more??
 	if ch == '-' || ch == '\'' || unicode.IsLetter(rune(ch)) || unicode.IsNumber(rune(ch)) {
 		return true
 	}

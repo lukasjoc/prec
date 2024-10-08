@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/lukasjoc/prec/internal/sexpr"
+	"github.com/lukasjoc/prec/internal/expr"
 	"golang.org/x/term"
 )
 
@@ -53,8 +53,8 @@ func openRepl() {
 			}
 			continue
 		}
-		builder := sexpr.NewBuilder(line)
-		s, err := builder.Build()
+		p := expr.NewParser([]byte(line))
+		e, err := p.Parse()
 		if errors.Is(err, io.EOF) {
 			continue
 		}
@@ -63,14 +63,14 @@ func openRepl() {
 			continue
 		}
 		if verbose != nil && *verbose {
-			s.Visit(func(s *sexpr.SExpr, ctx *sexpr.SExprVisitCtx) {
-				if s == nil {
+			e.Visit(func(e *expr.Expr, ctx *expr.ExprVisitCtx) {
+				if e == nil {
 					return
 				}
-				fmt.Printf("%s%s%s", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String(), replEndline)
-			}, &sexpr.SExprVisitCtx{Depth: 0})
+				fmt.Printf("%s%s%s", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), e.String(), replEndline)
+			}, &expr.ExprVisitCtx{Depth: 0})
 		}
-		val, err := s.Eval()
+		val, err := e.Eval()
 		if err != nil {
 			fmt.Printf("Error: %v%s", err, replEndline)
 			continue
@@ -96,9 +96,8 @@ func main() {
 	if evalContent == nil || len(*evalContent) == 0 {
 		openRepl()
 	} else {
-		line := *evalContent
-		builder := sexpr.NewBuilder(line)
-		s, err := builder.Build()
+		p := expr.NewParser([]byte(*evalContent))
+		e, err := p.Parse()
 		if errors.Is(err, io.EOF) {
 			os.Exit(1)
 		}
@@ -107,14 +106,14 @@ func main() {
 			os.Exit(1)
 		}
 		if verbose != nil && *verbose {
-			s.Visit(func(s *sexpr.SExpr, ctx *sexpr.SExprVisitCtx) {
-				if s == nil {
+			e.Visit(func(e *expr.Expr, ctx *expr.ExprVisitCtx) {
+				if e == nil {
 					return
 				}
-				fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), s.String())
-			}, &sexpr.SExprVisitCtx{Depth: 0})
+				fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), e.String())
+			}, &expr.ExprVisitCtx{Depth: 0})
 		}
-		val, err := s.Eval()
+		val, err := e.Eval()
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
