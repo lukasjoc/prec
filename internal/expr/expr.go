@@ -19,9 +19,9 @@ const (
 )
 
 type Expr struct {
-	typ      sexprType
-	token    *lex.Token
-	elements []*Expr // !Recursive
+	typ   sexprType
+	token *lex.Token
+	elems []*Expr // !Recursive
 }
 
 func (e Expr) String() string {
@@ -33,8 +33,22 @@ func (e Expr) String() string {
 
 func (e *Expr) isAtom() bool { return e.typ == sexprTypeAtom }
 func (e *Expr) isOp() bool   { return e.isAtom() && e.token.IsOp() }
-func (e *Expr) isList() bool { return e.typ == sexprTypeList }
+func (e *Expr) isList() bool { return e.typ == sexprTypeList && len(e.elems) != 0 }
 func (e *Expr) isNil() bool  { return e.typ == sexprTypeNil }
+
+func (e *Expr) Head() *Expr {
+	if !e.isList() {
+		return nil
+	}
+	return e.elems[0]
+}
+
+func (e *Expr) Tail() []*Expr {
+	if !e.isList() {
+		return nil
+	}
+	return e.elems[1:]
+}
 
 type ExprVisitFunc = func(e *Expr, ctx *ExprVisitCtx)
 type ExprVisitCtx struct {
@@ -45,15 +59,12 @@ func (e *Expr) visitAtom(f ExprVisitFunc, ctx *ExprVisitCtx) { f(e, ctx) }
 func (e *Expr) visitNil(f ExprVisitFunc, ctx *ExprVisitCtx)  { f(e, ctx) }
 func (e *Expr) visitList(f ExprVisitFunc, ctx *ExprVisitCtx) {
 	f(e, ctx)
-	if e.elements == nil {
-		return
-	}
 	if ctx.Depth+1 == math.MaxUint8 {
 		// TODO: prob should touch the sig here
 		panic(fmt.Errorf("depth would exceed limit of visitor: max %d", math.MaxUint8))
 	}
 	ctx.Depth += 1
-	for _, element := range e.elements {
+	for _, element := range e.elems {
 		element.Visit(f, ctx)
 	}
 	ctx.Depth -= 1
@@ -69,13 +80,13 @@ func (e *Expr) Visit(f ExprVisitFunc, ctx *ExprVisitCtx) {
 	}
 }
 
-func (e *Expr) Eval() (*big.Float, error) {
+func (e *Expr) Eval(ctx *evalCtx) (*big.Float, error) {
 	if e.isAtom() {
 		return e.evalAtom()
 	} else if e.isNil() {
 		return e.evalNil()
 	} else if e.isList() {
-		return e.evalList()
+		return e.evalList(ctx)
 	}
 	return nil, errors.New("eval: invalid type for evaluation. Neither list, nil nor atom")
 }
@@ -94,50 +105,33 @@ func (e *Expr) evalAtom() (*big.Float, error) {
 
 func (e *Expr) evalNil() (*big.Float, error) { return nil, nil }
 
-func applyOp(op string, valsPtr *[]big.Float) (*big.Float, error) {
-	if valsPtr == nil {
+func (e *Expr) evalList(ctx *evalCtx) (*big.Float, error) {
+	head := e.Head()
+	if !head.isAtom() || head.isAtom() && head.token.IsConst() {
+		// NOTE: accept that it's probably some sort of nested list etc.. that we
+		// just ignore for eval (for now).
 		return nil, nil
 	}
-	vals := *valsPtr
-	if len(vals) == 0 {
-		return nil, errors.New("applyOp: expected at least a single operand for evaluation")
+	name := head.token.Value()
+	if !ctx.Prelude.Defined(name) {
+        return nil, fmt.Errorf("evalList: prelude not defined for: %v", name)
 	}
-	x := vals[0]
-	for _, y := range vals[1:] {
-		switch op {
-		case "+":
-			x.Add(&x, &y)
-		case "-":
-			x.Sub(&x, &y)
-		case "*":
-			x.Mul(&x, &y)
-		case "/":
-			x.Quo(&x, &y)
-		default:
-			return nil, errors.New("applyOp: invalid op expected one of `+-*/`")
-		}
-	}
-	return &x, nil
-}
 
-func (e *Expr) evalList() (*big.Float, error) {
-	if e == nil || e.elements == nil || len(e.elements) == 0 || !e.elements[0].isOp() {
-		return nil, nil
-	}
-	op := e.elements[0]
-	flatvals := []big.Float{}
-	operands := e.elements[1:]
-	for _, operand := range operands {
-		if operand.isOp() {
-			return nil, fmt.Errorf("evalList: invalid operand type `%v`", operand.String())
+	// Recursively resolve the rest of the list elements as much as possible.
+	elems := []*big.Float{}
+	for _, elem := range e.Tail() {
+        // TODO: make sure to return an error if we try to apply a list to a
+        // prelude at the very end.. like (min (5 4))
+		if elem.isOp() || elem.isNil() {
+			return nil, fmt.Errorf("evalList: invalid operand type `%v`", elem.String())
 		}
-		opval, err := operand.Eval()
+		opval, err := ctx.With(elem)
 		if err != nil {
 			return nil, fmt.Errorf("evalList: %w", err)
 		}
 		if opval != nil {
-			flatvals = append(flatvals, *opval)
+			elems = append(elems, opval)
 		}
 	}
-	return applyOp(op.token.Value(), &flatvals)
+	return ctx.Prelude.ApplyUnchecked(name, elems)
 }

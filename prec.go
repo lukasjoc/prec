@@ -27,6 +27,7 @@ func openRepl() {
 	}
 	defer term.Restore(int(os.Stdin.Fd()), old)
 	vt := term.NewTerminal(os.Stdin, "> ")
+    ctx := expr.NewEvalCtx()
 	for {
 		rawLine, err := vt.ReadLine()
 		if errors.Is(err, io.EOF) {
@@ -38,6 +39,8 @@ func openRepl() {
 			fmt.Printf("quit|exit exit the repl%s", replEndline)
 			fmt.Printf("verbose   toggle verbose mode (enabled: %v)%s", verbose != nil && *verbose, replEndline)
 			fmt.Printf("help      print help%s", replEndline)
+            // TODO: print some help info about the prelude that is currently
+            // active and available..
 			continue
 		}
 		if line == "quit" || line == "exit" {
@@ -70,7 +73,7 @@ func openRepl() {
 				fmt.Printf("%s%s%s", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), e.String(), replEndline)
 			}, &expr.ExprVisitCtx{Depth: 0})
 		}
-		val, err := e.Eval()
+		val, err := ctx.With(&e)
 		if err != nil {
 			fmt.Printf("Error: %v%s", err, replEndline)
 			continue
@@ -113,7 +116,7 @@ func main() {
 				fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), e.String())
 			}, &expr.ExprVisitCtx{Depth: 0})
 		}
-		val, err := e.Eval()
+		val, err := expr.NewEvalCtx().With(&e)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
