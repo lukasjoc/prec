@@ -6,28 +6,28 @@ import (
 	"github.com/lukasjoc/prec/internal/lex"
 )
 
-type parser struct{ l *lex.Lexer }
+type Parser struct{ l *lex.Lexer }
 
 // TODO: should accept io.Reader and `stream` the tokens
-func NewParser(source []byte) *parser {
-	return &parser{l: lex.New(source)}
+func NewParser(source []byte) *Parser {
+	return &Parser{l: lex.New(source)}
 }
 
-func (p *parser) peek() (*lex.Token, error) {
+func (p *Parser) peek() (*lex.Token, error) {
 	p.l.SkipWhileSpace()
 	return p.l.Peek()
 }
 
-func (p *parser) next() (*lex.Token, error) {
+func (p *Parser) next() (*lex.Token, error) {
 	p.l.SkipWhileSpace()
 	return p.l.Next()
 }
 
-func (p *parser) atom(tok *lex.Token) (Expr, error) {
+func (p *Parser) atom(tok *lex.Token) (Expr, error) {
 	return Expr{sexprTypeAtom, tok, nil}, nil
 }
 
-func (p *parser) list(tok *lex.Token) (Expr, error) {
+func (p *Parser) list() (Expr, error) {
 	tok2, err := p.peek()
 	if err != nil {
 		return Expr{}, err
@@ -60,7 +60,7 @@ func (p *parser) list(tok *lex.Token) (Expr, error) {
 	return Expr{sexprTypeList, nil, elems}, tokerr
 }
 
-func (p *parser) Parse() (Expr, error) {
+func (p *Parser) Parse() (Expr, error) {
 	tok, err := p.next()
 	if err != nil {
 		return Expr{}, fmt.Errorf("parse: %w", err)
@@ -68,7 +68,7 @@ func (p *parser) Parse() (Expr, error) {
 	if tok.IsConst() || tok.IsOp() || tok.IsIdent() {
 		return p.atom(tok)
 	} else if tok.IsOpenPar() {
-		return p.list(tok)
+		return p.list()
 	}
 	return Expr{}, fmt.Errorf("parse:%d invalid entrypoint: `%s`", tok.Offset(), tok.Value())
 }
