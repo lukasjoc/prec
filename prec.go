@@ -20,6 +20,22 @@ var (
 
 const replEndline = "\n\033[2K\r"
 
+func displayBig(val *big.Float) {
+	if val != nil {
+		val.SetPrec(24)
+		prec := int(val.Prec())
+		acc := val.Acc()
+		if acc == big.Exact {
+			fmt.Printf("%s ", acc)
+			if val.IsInt() {
+				prec = 0
+			} else {
+				prec = 1
+			}
+		}
+		fmt.Printf("%s%s", val.Text('f', prec), replEndline)
+	}
+}
 func openRepl() {
 	old, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
@@ -27,7 +43,7 @@ func openRepl() {
 	}
 	defer term.Restore(int(os.Stdin.Fd()), old)
 	vt := term.NewTerminal(os.Stdin, "> ")
-    ctx := expr.NewEvalCtx()
+	ctx := expr.NewEvalCtx()
 	for {
 		rawLine, err := vt.ReadLine()
 		if errors.Is(err, io.EOF) {
@@ -39,8 +55,8 @@ func openRepl() {
 			fmt.Printf("quit|exit exit the repl%s", replEndline)
 			fmt.Printf("verbose   toggle verbose mode (enabled: %v)%s", verbose != nil && *verbose, replEndline)
 			fmt.Printf("help      print help%s", replEndline)
-            // TODO: print some help info about the prelude that is currently
-            // active and available..
+			// TODO: print some help info about the prelude that is currently
+			// active and available..
 			continue
 		}
 		if line == "quit" || line == "exit" {
@@ -73,24 +89,12 @@ func openRepl() {
 				fmt.Printf("%s%s%s", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), e.String(), replEndline)
 			}, &expr.ExprVisitCtx{Depth: 0})
 		}
-		val, err := ctx.With(&e)
+		val, err := ctx.Eval(&e)
 		if err != nil {
 			fmt.Printf("Error: %v%s", err, replEndline)
 			continue
 		}
-		if val != nil {
-			prec := int(val.Prec())
-			acc := val.Acc()
-			if acc == big.Exact {
-				fmt.Printf("%s ", acc)
-				if val.IsInt() {
-					prec = 0
-				} else {
-					prec = 1
-				}
-			}
-			fmt.Printf("%s%s", val.Text('f', prec), replEndline)
-		}
+		displayBig(val)
 	}
 }
 
@@ -116,23 +120,11 @@ func main() {
 				fmt.Printf("%s%s\n", strings.Repeat(strings.Repeat(" ", 2), int(ctx.Depth)), e.String())
 			}, &expr.ExprVisitCtx{Depth: 0})
 		}
-		val, err := expr.NewEvalCtx().With(&e)
+		val, err := expr.NewEvalCtx().Eval(&e)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
-		if val != nil {
-			prec := int(val.Prec())
-			acc := val.Acc()
-			if acc == big.Exact {
-				fmt.Printf("%s ", acc)
-				if val.IsInt() {
-					prec = 0
-				} else {
-					prec = 1
-				}
-			}
-			fmt.Printf("%s\n", val.Text('f', prec))
-		}
+		displayBig(val)
 	}
 }

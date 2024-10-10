@@ -21,7 +21,7 @@ const (
 type Expr struct {
 	typ   sexprType
 	token *lex.Token
-	elems []*Expr // !Recursive
+	elems []*Expr
 }
 
 func (e Expr) String() string {
@@ -114,18 +114,18 @@ func (e *Expr) evalList(ctx *evalCtx) (*big.Float, error) {
 	}
 	name := head.token.Value()
 	if !ctx.Prelude.Defined(name) {
-        return nil, fmt.Errorf("evalList: prelude not defined for: %v", name)
+		return nil, fmt.Errorf("evalList: prelude not defined for: %v", name)
 	}
 
 	// Recursively resolve the rest of the list elements as much as possible.
 	elems := []*big.Float{}
 	for _, elem := range e.Tail() {
-        // TODO: make sure to return an error if we try to apply a list to a
-        // prelude at the very end.. like (min (5 4))
+		// TODO: make sure to return an error if we try to apply a list to a
+		// prelude at the very end.. like (min (5 4))
 		if elem.isOp() || elem.isNil() {
 			return nil, fmt.Errorf("evalList: invalid operand type `%v`", elem.String())
 		}
-		opval, err := ctx.With(elem)
+		opval, err := ctx.Eval(elem)
 		if err != nil {
 			return nil, fmt.Errorf("evalList: %w", err)
 		}

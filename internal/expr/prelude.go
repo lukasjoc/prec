@@ -6,10 +6,8 @@ import (
 	"math/big"
 )
 
-// FIXME: probaly want to change the return signature of the prelude
-// function to return an any otherwise i'd have to create big Floats despite
-// needing them..
 type preludeFunc = func([]*big.Float) (*big.Float, error)
+
 type prelude struct {
 	registered map[string]preludeFunc
 }
@@ -32,14 +30,14 @@ func (p *prelude) register(name string, f preludeFunc) {
 	p.registered[name] = f
 }
 
-var errMissingElems = errors.New("missing operands for evaluation")
+var errWrongNumberArgs = errors.New("wrong number of arguments")
 
 func newPrelude() *prelude {
 	p := &prelude{}
 
 	p.register("+", func(elems []*big.Float) (*big.Float, error) {
 		if len(elems) == 0 {
-			return nil, fmt.Errorf("prelude:apply:`+` %w", errMissingElems)
+			return nil, fmt.Errorf("prelude:apply:`+` %w", errWrongNumberArgs)
 		}
 		acc := elems[0]
 		rest := elems[1:]
@@ -51,7 +49,7 @@ func newPrelude() *prelude {
 
 	p.register("-", func(elems []*big.Float) (*big.Float, error) {
 		if len(elems) == 0 {
-			return nil, fmt.Errorf("prelude:apply:`-` %w", errMissingElems)
+			return nil, fmt.Errorf("prelude:apply:`-` %w", errWrongNumberArgs)
 		}
 		acc := elems[0]
 		rest := elems[1:]
@@ -63,7 +61,7 @@ func newPrelude() *prelude {
 
 	p.register("*", func(elems []*big.Float) (*big.Float, error) {
 		if len(elems) == 0 {
-			return nil, fmt.Errorf("prelude:apply:`*` %w", errMissingElems)
+			return nil, fmt.Errorf("prelude:apply:`*` %w", errWrongNumberArgs)
 		}
 		acc := elems[0]
 		rest := elems[1:]
@@ -75,7 +73,7 @@ func newPrelude() *prelude {
 
 	p.register("/", func(elems []*big.Float) (*big.Float, error) {
 		if len(elems) == 0 {
-			return nil, fmt.Errorf("prelude:apply:`/` %w", errMissingElems)
+			return nil, fmt.Errorf("prelude:apply:`/` %w", errWrongNumberArgs)
 		}
 		acc := elems[0]
 		rest := elems[1:]
@@ -83,11 +81,12 @@ func newPrelude() *prelude {
 			acc.Quo(acc, lhs)
 		}
 		return acc, nil
+
 	})
 
 	p.register("max", func(elems []*big.Float) (*big.Float, error) {
 		if len(elems) == 0 {
-			return nil, fmt.Errorf("prelude:apply:`max` %w", errMissingElems)
+			return nil, fmt.Errorf("prelude:apply:`max` %w", errWrongNumberArgs)
 		}
 		acc := elems[0]
 		rest := elems[1:]
@@ -102,7 +101,7 @@ func newPrelude() *prelude {
 
 	p.register("min", func(elems []*big.Float) (*big.Float, error) {
 		if len(elems) == 0 {
-			return nil, fmt.Errorf("prelude:apply:`min` %w", errMissingElems)
+			return nil, fmt.Errorf("prelude:apply:`min` %w", errWrongNumberArgs)
 		}
 		acc := elems[0]
 		rest := elems[1:]
@@ -115,7 +114,39 @@ func newPrelude() *prelude {
 		return acc, nil
 	})
 
-	// TODO: more functions
+	p.register("sqrt", func(elems []*big.Float) (*big.Float, error) {
+		if len(elems) != 1 {
+			return nil, fmt.Errorf("prelude:apply:`sqrt` %w", errWrongNumberArgs)
+		}
+		z := new(big.Float).Sqrt(elems[0])
+		return z, nil
+	})
+
+	p.register("neg", func(elems []*big.Float) (*big.Float, error) {
+		if len(elems) != 1 {
+			return nil, fmt.Errorf("prelude:apply:`neg` %w", errWrongNumberArgs)
+		}
+		z := new(big.Float).Neg(elems[0])
+		return z, nil
+	})
+
+	p.register("abs", func(elems []*big.Float) (*big.Float, error) {
+		if len(elems) != 1 {
+			return nil, fmt.Errorf("prelude:apply:`abs` %w", errWrongNumberArgs)
+		}
+		z := new(big.Float).Abs(elems[0])
+		return z, nil
+	})
+
+	p.register("count", func(elems []*big.Float) (*big.Float, error) {
+		if len(elems) == 0 {
+			return nil, fmt.Errorf("prelude:apply:`count` %w", errWrongNumberArgs)
+		}
+        // TODO: this shows that we should really resolve to expressions
+        // instead of big Float. as that could be any value (atom) or even a list
+        // for later..
+		return big.NewFloat(float64(len(elems))), nil
+	})
 
 	return p
 }
@@ -131,6 +162,6 @@ func NewEvalCtx() *evalCtx {
 
 // TODO: maybe we just call the Eval directly and pass in the ctx from outside
 // This feels a bit overengineered.
-func (ctx *evalCtx) With(e *Expr) (*big.Float, error) {
+func (ctx *evalCtx) Eval(e *Expr) (*big.Float, error) {
 	return e.Eval(ctx)
 }

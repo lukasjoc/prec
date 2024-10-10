@@ -1,9 +1,7 @@
 @Type: todoreadme
 
-- simple function prelude
-  - max, min, avg, med, rev, abs, sqrt, sin, cos etc...
-
-- use a proper peeker
+- (better) function composition with custom anonymous funtions to allow
+things like avg etc. 
 - better traces/ offsets in error reporting
 - support floats (3.14159)
 
