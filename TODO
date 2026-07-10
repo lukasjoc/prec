@@ -5,6 +5,10 @@ things like avg etc.
 - better traces/ offsets in error reporting
 - support floats (3.14159)
 
+? self host
+? custom byte code, jit compiler
+? VM/compiler as Go Lib
+? tail-call/ recursion at all to allow define to exist and we can try to start defining prec within prec.
 ? verbose mode should also print the intermediate results of the evaluation process
 ? support fractions nicely (3/4)
 ? support e notation (1e6)
