@@ -23,8 +23,9 @@ const _tokenType_name = "tokenTypeConsttokenTypeOptokenTypeIdenttokenTypeOpenPar
 var _tokenType_index = [...]uint8{0, 14, 25, 39, 55, 72, 86, 102, 114}
 
 func (i tokenType) String() string {
-	if i >= tokenType(len(_tokenType_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_tokenType_index)-1 {
 		return "tokenType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _tokenType_name[_tokenType_index[i]:_tokenType_index[i+1]]
+	return _tokenType_name[_tokenType_index[idx]:_tokenType_index[idx+1]]
 }

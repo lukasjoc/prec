@@ -18,8 +18,9 @@ const _sexprType_name = "sexprTypeAtomsexprTypeListsexprTypeNil"
 var _sexprType_index = [...]uint8{0, 13, 26, 38}
 
 func (i sexprType) String() string {
-	if i >= sexprType(len(_sexprType_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_sexprType_index)-1 {
 		return "sexprType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _sexprType_name[_sexprType_index[i]:_sexprType_index[i+1]]
+	return _sexprType_name[_sexprType_index[idx]:_sexprType_index[idx+1]]
 }
