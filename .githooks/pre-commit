@@ -1,0 +1,2 @@
+#!/bin/sh
+tod check --hook pre-commit
