@@ -1,0 +1,133 @@
+[
+  {"input": "1", "expected": "1", "error": false},
+  {"input": "0", "expected": "0", "error": false},
+  {"input": "-1", "expected": "-1", "error": false},
+  {"input": "42", "expected": "42", "error": false},
+  {"input": "3.14", "expected": "3.14", "error": false},
+  {"input": "-2.5", "expected": "-2.5", "error": false},
+
+  {"input": "(+ 1 2)", "expected": "3", "error": false},
+  {"input": "(+ 10 20)", "expected": "30", "error": false},
+  {"input": "(+ -5 8)", "expected": "3", "error": false},
+  {"input": "(+ 1 2 3)", "expected": "6", "error": false},
+  {"input": "(+ 1 2 3 4 5)", "expected": "15", "error": false},
+  {"input": "(+ 1.5 2.5)", "expected": "4", "error": false},
+  {"input": "(+ -1.5 2.5)", "expected": "1", "error": false},
+  {"input": "(+ 0 0)", "expected": "0", "error": false},
+
+  {"input": "(- 5 2)", "expected": "3", "error": false},
+  {"input": "(- 10 3)", "expected": "7", "error": false},
+  {"input": "(- 3 10)", "expected": "-7", "error": false},
+  {"input": "(- 10)", "expected": "-10", "error": false},
+  {"input": "(- -5)", "expected": "5", "error": false},
+  {"input": "(- 10 2 3)", "expected": "5", "error": false},
+  {"input": "(- 0 5)", "expected": "-5", "error": false},
+
+  {"input": "(* 2 3)", "expected": "6", "error": false},
+  {"input": "(* 4 5)", "expected": "20", "error": false},
+  {"input": "(* -2 3)", "expected": "-6", "error": false},
+  {"input": "(* -2 -3)", "expected": "6", "error": false},
+  {"input": "(* 2 3 4)", "expected": "24", "error": false},
+  {"input": "(* 1.5 2)", "expected": "3", "error": false},
+  {"input": "(* 0 123)", "expected": "0", "error": false},
+
+  {"input": "(/ 6 2)", "expected": "3", "error": false},
+  {"input": "(/ 10 2)", "expected": "5", "error": false},
+  {"input": "(/ 2 10)", "expected": "0.2", "error": false},
+  {"input": "(/ -6 2)", "expected": "-3", "error": false},
+  {"input": "(/ -6 -2)", "expected": "3", "error": false},
+  {"input": "(/ 20 2 2)", "expected": "5", "error": false},
+  {"input": "(/ 1 2)", "expected": "0.5", "error": false},
+  {"input": "(/ 0 5)", "expected": "0", "error": false},
+
+  {"input": "(+ (* 2 3) 4)", "expected": "10", "error": false},
+  {"input": "(* (+ 1 2) 3)", "expected": "9", "error": false},
+  {"input": "(- (* 5 5) 10)", "expected": "15", "error": false},
+  {"input": "(/ (+ 10 10) 4)", "expected": "5", "error": false},
+
+  {"input": "(+ 1 (* 2 3))", "expected": "7", "error": false},
+  {"input": "(* 2 (+ 3 4))", "expected": "14", "error": false},
+  {"input": "(- 20 (* 2 5))", "expected": "10", "error": false},
+  {"input": "(/ 100 (* 2 5))", "expected": "10", "error": false},
+
+  {"input": "(+ (* 2 (+ 3 4)) 5)", "expected": "19", "error": false},
+  {"input": "(* (+ 1 2) (- 10 4))", "expected": "18", "error": false},
+  {"input": "(/ (* 2 3) (+ 1 2))", "expected": "2", "error": false},
+  {"input": "(- (+ 10 5) (* 2 3))", "expected": "9", "error": false},
+
+  {"input": "(+ 1 (+ 2 3))", "expected": "6", "error": false},
+  {"input": "(+ (+ 1 2) (+ 3 4))", "expected": "10", "error": false},
+  {"input": "(* (* 2 3) (* 4 5))", "expected": "120", "error": false},
+  {"input": "(- (- 10 3) 2)", "expected": "5", "error": false},
+  {"input": "(/ (/ 100 2) 5)", "expected": "10", "error": false},
+
+  {"input": "(+ 1 (* 2 (+ 3 (* 4 5))))", "expected": "47", "error": false},
+  {"input": "(* (+ 1 2) (+ 3 4))", "expected": "21", "error": false},
+  {"input": "(- (* 10 10) (+ 20 30))", "expected": "50", "error": false},
+  {"input": "(/ (+ 20 10) (- 10 4))", "expected": "5", "error": false},
+
+  {"input": "(+ -1 -2)", "expected": "-3", "error": false},
+  {"input": "(- -10 -5)", "expected": "-5", "error": false},
+  {"input": "(* -2 -4)", "expected": "8", "error": false},
+  {"input": "(/ -10 -2)", "expected": "5", "error": false},
+
+  {"input": "(+ -1 (* -2 3))", "expected": "-7", "error": false},
+  {"input": "(* (- 10 15) 2)", "expected": "-10", "error": false},
+  {"input": "(/ (- 5 10) -5)", "expected": "1", "error": false},
+
+  {"input": "(+ 1.1 2.2)", "expected": "3.3", "error": false},
+  {"input": "(- 5.5 2.25)", "expected": "3.25", "error": false},
+  {"input": "(* 1.5 4)", "expected": "6", "error": false},
+  {"input": "(/ 7.5 2.5)", "expected": "3", "error": false},
+  {"input": "(+ 0.1 0.2)", "expected": "0.3", "error": false},
+
+  {"input": "(+ (* 1.5 2) (/ 10 4))", "expected": "5.5", "error": false},
+  {"input": "(- 10.5 (* 2.5 2))", "expected": "5.5", "error": false},
+  {"input": "(/ (+ 1.5 2.5) 2)", "expected": "2", "error": false},
+
+  {"input": "(+ 1 2 3 4 5 6 7 8 9 10)", "expected": "55", "error": false},
+  {"input": "(* 1 2 3 4 5)", "expected": "120", "error": false},
+  {"input": "(- 100 10 20 30)", "expected": "40", "error": false},
+  {"input": "(/ 120 2 3 4)", "expected": "5", "error": false},
+
+  {"input": "(+ (* 2 3) (* 4 5) (* 6 7))", "expected": "68", "error": false},
+  {"input": "(- (* 10 10) (* 2 3) (* 4 5))", "expected": "62", "error": false},
+  {"input": "(/ (* 2 3 4) (+ 1 2 3))", "expected": "4", "error": false},
+
+  {"input": "(+ (+ (+ 1 2) 3) 4)", "expected": "10", "error": false},
+  {"input": "(* (* (* 2 3) 4) 5)", "expected": "120", "error": false},
+  {"input": "(- (- (- 20 5) 5) 5)", "expected": "5", "error": false},
+
+  {"input": "(+ 1 (* 2 (- 10 (/ 8 2))))", "expected": "13", "error": false},
+  {"input": "(* (- 10 2) (+ 3 4))", "expected": "56", "error": false},
+  {"input": "(/ (+ (* 2 5) 10) 5)", "expected": "4", "error": false},
+  {"input": "(- (* (+ 2 3) 4) (/ 20 2))", "expected": "10", "error": false},
+
+  {"input": "", "expected": "", "error": true},
+  {"input": "()", "expected": "", "error": true},
+  {"input": "(+)", "expected": "", "error": true},
+  {"input": "(*)", "expected": "", "error": true},
+  {"input": "(-)", "expected": "", "error": true},
+  {"input": "(/)", "expected": "", "error": true},
+
+  {"input": "(+ 1", "expected": "", "error": true},
+  {"input": "(+ 1 2", "expected": "", "error": true},
+  {"input": "(+", "expected": "", "error": true},
+  {"input": "(", "expected": "", "error": true},
+
+  {"input": "+ 1 2)", "expected": "", "error": true},
+  {"input": "(+ 1 2))", "expected": "", "error": true},
+  {"input": "((+ 1 2))", "expected": "", "error": true},
+  {"input": "(+ (1 2))", "expected": "", "error": true},
+  {"input": "(+ 1 (2 3))", "expected": "", "error": true},
+  {"input": "(+ 1 2))", "expected": "", "error": true},
+
+  {"input": "(+ 1 foo)", "expected": "", "error": true},
+  {"input": "(foo 1 2)", "expected": "", "error": true},
+  {"input": "(+ \"1\" 2)", "expected": "", "error": true},
+  {"input": "(+ 1.2.3 4)", "expected": "", "error": true},
+  {"input": "(+ 1, 2 3)", "expected": "", "error": true},
+
+  {"input": "(/ 1 0)", "expected": "", "error": true},
+  {"input": "(/ 0 0)", "expected": "", "error": true}
+]

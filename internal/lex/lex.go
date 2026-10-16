@@ -6,18 +6,18 @@ import (
 	"unicode"
 )
 
-//go:generate stringer -type=tokenType
-type tokenType uint8
+//go:generate stringer -type=TokenType
+type TokenType uint8
 
 const (
-	tokenTypeConst tokenType = iota
-	tokenTypeOp
-	tokenTypeIdent
-	tokenTypeOpenPar
-	tokenTypeClosePar
-	tokenTypeSpace
-	tokenTypeInvalid
-	tokenTypeEof
+	TokenTypeConst TokenType = iota
+	TokenTypeOp
+	TokenTypeIdent
+	TokenTypeOpenPar
+	TokenTypeClosePar
+	TokenTypeSpace
+	TokenTypeInvalid
+	TokenTypeEof
 )
 
 const eof byte = 0xFF // 255
@@ -32,7 +32,7 @@ func isSupportedOp(ch byte) bool {
 }
 
 type Token struct {
-	typ    tokenType
+	typ    TokenType
 	offset int
 	value  []byte
 }
@@ -41,11 +41,11 @@ func (t Token) Value() string    { return string(t.value) }
 func (t Token) Bytes() []byte    { return t.value }
 func (t Token) String() string   { return t.typ.String() }
 func (t Token) Offset() int      { return t.offset }
-func (t Token) IsConst() bool    { return t.typ == tokenTypeConst }
-func (t Token) IsOp() bool       { return t.typ == tokenTypeOp }
-func (t Token) IsIdent() bool    { return t.typ == tokenTypeIdent }
-func (t Token) IsOpenPar() bool  { return t.typ == tokenTypeOpenPar }
-func (t Token) IsClosePar() bool { return t.typ == tokenTypeClosePar }
+func (t Token) IsConst() bool    { return t.typ == TokenTypeConst }
+func (t Token) IsOp() bool       { return t.typ == TokenTypeOp }
+func (t Token) IsIdent() bool    { return t.typ == TokenTypeIdent }
+func (t Token) IsOpenPar() bool  { return t.typ == TokenTypeOpenPar }
+func (t Token) IsClosePar() bool { return t.typ == TokenTypeClosePar }
 
 type Lexer struct {
 	source []byte
@@ -90,7 +90,7 @@ func (l *Lexer) span(from int, to int) []byte {
 // FIXME: Shady bizz
 func (l Lexer) Peek() (*Token, error) { return l.Next() }
 
-func (l *Lexer) skipWhile(typ tokenType) error {
+func (l *Lexer) skipWhile(typ TokenType) error {
 	var tokerr error = nil
 	for {
 		tok, err := l.Peek()
@@ -111,7 +111,7 @@ func (l *Lexer) skipWhile(typ tokenType) error {
 }
 
 func (l *Lexer) SkipWhileSpace() {
-	l.skipWhile(tokenTypeSpace)
+	l.skipWhile(TokenTypeSpace)
 }
 
 func (l *Lexer) isConst(at byte) bool {
@@ -134,7 +134,7 @@ func isIdentChar(ch byte) bool {
 	return false
 }
 
-func (l *Lexer) tryParseIdent(at byte, typ *tokenType) {
+func (l *Lexer) tryParseIdent(at byte, typ *TokenType) {
 	if !canStartIdent(at) {
 		panic(fmt.Errorf("bad assumptions:%d char `%v` cannot start an ident", l.pos, at))
 	}
@@ -147,10 +147,10 @@ func (l *Lexer) tryParseIdent(at byte, typ *tokenType) {
 		l.left = leftStart
 		return
 	}
-	*typ = tokenTypeIdent
+	*typ = TokenTypeIdent
 }
 
-func (l *Lexer) tryParseConst(at byte, typ *tokenType) {
+func (l *Lexer) tryParseConst(at byte, typ *TokenType) {
 	if !l.isConst(at) {
 		return
 	}
@@ -167,7 +167,7 @@ func (l *Lexer) tryParseConst(at byte, typ *tokenType) {
 		l.left = leftStart
 		return
 	}
-	*typ = tokenTypeConst
+	*typ = TokenTypeConst
 }
 
 func (l *Lexer) Next() (*Token, error) {
@@ -175,11 +175,11 @@ func (l *Lexer) Next() (*Token, error) {
 	if ch == eof {
 		return nil, fmt.Errorf("next: %w", io.EOF)
 	}
-	typ := tokenTypeInvalid
+	typ := TokenTypeInvalid
 	if ch == '(' {
-		typ = tokenTypeOpenPar
+		typ = TokenTypeOpenPar
 	} else if ch == ')' {
-		typ = tokenTypeClosePar
+		typ = TokenTypeClosePar
 	} else {
 		if canStartIdent(ch) {
 			l.tryParseIdent(ch, &typ)
@@ -187,13 +187,13 @@ func (l *Lexer) Next() (*Token, error) {
 			l.tryParseConst(ch, &typ)
 		} else if unicode.IsSpace(rune(ch)) {
 			l.eatWhile(func(ch byte) bool { return unicode.IsSpace(rune(ch)) })
-			typ = tokenTypeSpace
+			typ = TokenTypeSpace
 		} else if isSupportedOp(ch) {
-			typ = tokenTypeOp
+			typ = TokenTypeOp
 		}
 	}
 	toklen := len(l.source) - l.left
-	if typ == tokenTypeInvalid {
+	if typ == TokenTypeInvalid {
 		return nil, fmt.Errorf("next:%d bad syntax `%s`", l.pos, string(l.source[l.pos]))
 	}
 	tok := &Token{typ, l.last, l.span(l.last, toklen)}
