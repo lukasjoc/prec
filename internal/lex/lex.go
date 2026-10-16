@@ -32,20 +32,20 @@ func isSupportedOp(ch byte) bool {
 }
 
 type Token struct {
-	typ    TokenType
-	offset int
-	value  []byte
+	Type  TokenType
+	Off   int
+	value []byte
 }
 
 func (t Token) Value() string    { return string(t.value) }
 func (t Token) Bytes() []byte    { return t.value }
-func (t Token) String() string   { return t.typ.String() }
-func (t Token) Offset() int      { return t.offset }
-func (t Token) IsConst() bool    { return t.typ == TokenTypeConst }
-func (t Token) IsOp() bool       { return t.typ == TokenTypeOp }
-func (t Token) IsIdent() bool    { return t.typ == TokenTypeIdent }
-func (t Token) IsOpenPar() bool  { return t.typ == TokenTypeOpenPar }
-func (t Token) IsClosePar() bool { return t.typ == TokenTypeClosePar }
+func (t Token) String() string   { return t.Type.String() }
+func (t Token) Offset() int      { return t.Off }
+func (t Token) IsConst() bool    { return t.Type == TokenTypeConst }
+func (t Token) IsOp() bool       { return t.Type == TokenTypeOp }
+func (t Token) IsIdent() bool    { return t.Type == TokenTypeIdent }
+func (t Token) IsOpenPar() bool  { return t.Type == TokenTypeOpenPar }
+func (t Token) IsClosePar() bool { return t.Type == TokenTypeClosePar }
 
 type Lexer struct {
 	source []byte
@@ -98,7 +98,7 @@ func (l *Lexer) skipWhile(typ TokenType) error {
 			tokerr = err
 			break
 		}
-		if tok.typ != typ {
+		if tok.Type != typ {
 			break
 		}
 		_, err = l.Next()

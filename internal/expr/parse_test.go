@@ -30,11 +30,6 @@ func init() {
 	loadTestData()
 }
 
-// have snapshot?
-// kein snapshot -> output.uncomitted
-// snapshot -> snapshot vs. output.
-// passt -> adopt
-
 type snapshotAssertion struct {
 	Input  string
 	Output string
