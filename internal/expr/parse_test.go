@@ -45,7 +45,7 @@ func snapshotAssert(t *testing.T, input string, output string, assertionErr erro
 	if marshalErr != nil {
 		t.Fatal(marshalErr)
 	}
-	t.Logf("--- SNAP: %s", data)
+	t.Logf("--- SNAP:@@%s", data)
 }
 
 func TestParse(t *testing.T) {
