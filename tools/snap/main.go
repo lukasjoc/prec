@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -14,15 +15,46 @@ type InputRow struct {
 	Test   string
 }
 
-type snapshotAssertion struct {
-	Input      string
-	Output     string
-	OutputData any
-	Err        any
+type snapshot struct {
+	Input  string
+	Output string
+	Err    any
+}
+
+func parseSnapshot(data []byte) (*snapshot, error) {
+	var s snapshot
+	if err := json.Unmarshal(data, &s); err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
+func loadSnapshot(testname string) (*snapshot, error, bool) {
+	name := fmt.Sprintf(".snapdata/%s.snap", strings.Replace(testname, "/", "-", 1))
+	data, err := os.ReadFile(name)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil, false
+		}
+		return nil, err, false
+	}
+	s, err := parseSnapshot(data)
+	return s, err, true
 }
 
 func main() {
+	// os.RemoveAll(".snapdata")
+	os.Mkdir(".snapdata", 0755)
+
 	stdin := bufio.NewScanner(os.Stdin)
+
+	tty, err := os.Open("/dev/tty")
+	if err != nil {
+		panic(err)
+	}
+	defer tty.Close()
+
+	confirm := bufio.NewReader(tty)
 
 	for stdin.Scan() {
 		var row InputRow
@@ -36,26 +68,53 @@ func main() {
 			output := strings.Trim(row.Output, " \n\r")
 			if strings.Contains(output, "--- SNAP:@@") {
 				parts := strings.Split(output, "@@")
-				testdata := []byte(parts[len(parts)-1])
-				// var data snapshotAssertion
-				// err := json.Unmarshal(testdata, &data)
-				// if err != nil {
-				// 	fmt.Fprintf(os.Stderr, "snap: cannot parse output: error: %v\n", err)
-				// 	break
-				// }
-
-				// if len(data.Output) > 0 {
-				// 	if err := json.Unmarshal([]byte(data.Output), &data.OutputData); err != nil {
-				// 		fmt.Fprintf(os.Stderr, "snap: cannot parse outputdata: error: %v\n", err)
-				// 		break
-				// 	}
-				// }
-				err := os.WriteFile(fmt.Sprintf(".snapdata/%s", strings.Replace(row.Test, "/", "-", 1)), []byte(testdata), 0600)
+				incoming, err := parseSnapshot([]byte(parts[len(parts)-1]))
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
+					fmt.Fprintf(os.Stderr, "snap: cannot parse snapshot: error: %v\n", err)
 					break
 				}
-				fmt.Fprintf(os.Stdout, "snap(row): %v\n", testdata)
+
+				existing, err, found := loadSnapshot(row.Test)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "snap: cannot load snapshot: error: %v\n", err)
+					break
+				}
+				if !found {
+					fmt.Fprintf(os.Stdout, "Name: %s\n", row.Test)
+					fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
+					if incoming.Err != nil {
+						fmt.Fprintf(os.Stdout, "Output: %v\n", incoming.Err)
+					} else {
+						// TODO(NOMERGE): pretty printed, indented
+						fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
+					}
+					fmt.Fprintf(os.Stdout, "Accept new snapshot [y,n]? ")
+					ans, err := confirm.ReadString('\n')
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "snap: cannot read tty: error: %v\n", err)
+						break
+					}
+					if ans == "y\n" || ans == "n\n" {
+						if ans == "y\n" {
+							data, err := json.Marshal(incoming)
+							name := fmt.Sprintf(".snapdata/%s.snap", strings.Replace(row.Test, "/", "-", 1))
+							err = os.WriteFile(name, data, 0644)
+							if err != nil {
+								fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
+								break
+							}
+						} else {
+							continue
+						}
+					} else {
+						panic("handle wrong input")
+					}
+				} else {
+					_ = incoming
+					panic("TODO: implement snapshot exists")
+				}
+
+				fmt.Fprintf(os.Stdout, "snap(row): %v\n", existing)
 			}
 		}
 

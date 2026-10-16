@@ -1,1 +1,0 @@
-{"Input":"(- -10 -5)","Output":"{\"Type\":1,\"Token\":null,\"Elems\":[{\"Type\":0,\"Token\":{\"Type\":1,\"Off\":1},\"Elems\":null},{\"Type\":0,\"Token\":{\"Type\":0,\"Off\":3},\"Elems\":null},{\"Type\":0,\"Token\":{\"Type\":0,\"Off\":7},\"Elems\":null}]}","Err":null}
