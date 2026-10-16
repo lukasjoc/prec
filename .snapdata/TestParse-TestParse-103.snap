@@ -1,0 +1,1 @@
+{"Input":"(foo 1 2)","Output":"{\"Type\":1,\"Token\":null,\"Elems\":[{\"Type\":0,\"Token\":{\"Type\":2,\"Off\":1},\"Elems\":null},{\"Type\":0,\"Token\":{\"Type\":0,\"Off\":5},\"Elems\":null},{\"Type\":0,\"Token\":{\"Type\":0,\"Off\":7},\"Elems\":null}]}","Err":null}

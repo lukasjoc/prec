@@ -88,6 +88,7 @@ func main() {
 						// TODO(NOMERGE): pretty printed, indented
 						fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
 					}
+
 					fmt.Fprintf(os.Stdout, "Accept new snapshot [y,n]? ")
 					ans, err := confirm.ReadString('\n')
 					if err != nil {
@@ -110,11 +111,57 @@ func main() {
 						panic("handle wrong input")
 					}
 				} else {
-					_ = incoming
-					panic("TODO: implement snapshot exists")
-				}
+					if existing.Input == incoming.Input && existing.Err != nil && incoming.Err != nil && existing.Err == incoming.Err {
+						continue
+					}
+					if existing.Input == incoming.Input && existing.Output == incoming.Output {
+						continue
+					}
 
-				fmt.Fprintf(os.Stdout, "snap(row): %v\n", existing)
+					fmt.Fprintf(os.Stdout, "Name: %s\n", row.Test)
+
+					fmt.Fprintf(os.Stdout, "EXISTING ==>\n")
+					fmt.Fprintf(os.Stdout, "Input: %s\n", existing.Input)
+					if existing.Err != nil {
+						fmt.Fprintf(os.Stdout, "Output: %v\n", existing.Err)
+					} else {
+						// TODO(NOMERGE): pretty printed, indented
+						fmt.Fprintf(os.Stdout, "Output: %s\n", existing.Output)
+					}
+
+					fmt.Fprintf(os.Stdout, "<== INCOMING\n")
+					fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
+					if incoming.Err != nil {
+						fmt.Fprintf(os.Stdout, "Output: %v\n", incoming.Err)
+					} else {
+						// TODO(NOMERGE): pretty printed, indented
+						fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
+					}
+
+					fmt.Fprintf(os.Stdout, "Accept updates [y,n]? ")
+					ans, err := confirm.ReadString('\n')
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "snap: cannot read tty: error: %v\n", err)
+						break
+					}
+					if ans == "y\n" || ans == "n\n" {
+						if ans == "y\n" {
+							panic("handle accepted updates")
+							// data, err := json.Marshal(incoming)
+							// name := fmt.Sprintf(".snapdata/%s.snap", strings.Replace(row.Test, "/", "-", 1))
+							// err = os.WriteFile(name, data, 0644)
+							// if err != nil {
+							// 	fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
+							// 	break
+							// }
+						} else {
+							continue
+						}
+					} else {
+						panic("handle wrong input")
+					}
+				}
+				fmt.Fprintf(os.Stdout, "\n")
 			}
 		}
 
