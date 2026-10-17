@@ -1,12 +1,9 @@
 module github.com/lukasjoc/prec
 
-go 1.24
+go 1.27.0
 
-require golang.org/x/sys v0.18.0 // indirect
+require golang.org/x/sys v0.49.0 // indirect
 
-require golang.org/x/term v0.18.0
+require golang.org/x/term v0.47.0
 
-// github.com/lukasjoc/prec/tools/snap
-tool (
-	github.com/lukasjoc/prec/tools/snap
-)
+tool github.com/lukasjoc/prec
