@@ -146,14 +146,13 @@ func main() {
 					}
 					if ans == "y\n" || ans == "n\n" {
 						if ans == "y\n" {
-							panic("handle accepted updates")
-							// data, err := json.Marshal(incoming)
-							// name := fmt.Sprintf(".snapdata/%s.snap", strings.Replace(row.Test, "/", "-", 1))
-							// err = os.WriteFile(name, data, 0644)
-							// if err != nil {
-							// 	fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
-							// 	break
-							// }
+							data, err := json.Marshal(incoming)
+							name := fmt.Sprintf(".snapdata/%s.snap", strings.Replace(row.Test, "/", "-", 1))
+							err = os.WriteFile(name, data, 0644)
+							if err != nil {
+								fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
+								break
+							}
 						} else {
 							continue
 						}
@@ -161,7 +160,6 @@ func main() {
 						panic("handle wrong input")
 					}
 				}
-				fmt.Fprintf(os.Stdout, "\n")
 			}
 		}
 
