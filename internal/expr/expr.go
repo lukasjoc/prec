@@ -19,35 +19,35 @@ const (
 )
 
 type Expr struct {
-	typ   sexprType
-	token *lex.Token
-	elems []*Expr
+	Type  sexprType
+	Token *lex.Token
+	Elems []*Expr
 }
 
 func (e Expr) String() string {
-	if e.token == nil {
-		return e.typ.String()
+	if e.Token == nil {
+		return e.Type.String()
 	}
-	return fmt.Sprintf("%s:%s:%s", e.typ.String(), e.token.String(), e.token.Value())
+	return fmt.Sprintf("%s:%s:%s", e.Type.String(), e.Token.String(), e.Token.Value())
 }
 
-func (e *Expr) isAtom() bool { return e.typ == sexprTypeAtom }
-func (e *Expr) isOp() bool   { return e.isAtom() && e.token.IsOp() }
-func (e *Expr) isList() bool { return e.typ == sexprTypeList && len(e.elems) != 0 }
-func (e *Expr) isNil() bool  { return e.typ == sexprTypeNil }
+func (e *Expr) isAtom() bool { return e.Type == sexprTypeAtom }
+func (e *Expr) isOp() bool   { return e.isAtom() && e.Token.IsOp() }
+func (e *Expr) isList() bool { return e.Type == sexprTypeList && len(e.Elems) != 0 }
+func (e *Expr) isNil() bool  { return e.Type == sexprTypeNil }
 
 func (e *Expr) Head() *Expr {
 	if !e.isList() {
 		return nil
 	}
-	return e.elems[0]
+	return e.Elems[0]
 }
 
 func (e *Expr) Tail() []*Expr {
 	if !e.isList() {
 		return nil
 	}
-	return e.elems[1:]
+	return e.Elems[1:]
 }
 
 type ExprVisitFunc = func(e *Expr, ctx *ExprVisitCtx)
@@ -64,7 +64,7 @@ func (e *Expr) visitList(f ExprVisitFunc, ctx *ExprVisitCtx) {
 		panic(fmt.Errorf("depth would exceed limit of visitor: max %d", math.MaxUint8))
 	}
 	ctx.Depth += 1
-	for _, element := range e.elems {
+	for _, element := range e.Elems {
 		element.Visit(f, ctx)
 	}
 	ctx.Depth -= 1
@@ -92,11 +92,11 @@ func (e *Expr) Eval(ctx *evalCtx) (*big.Float, error) {
 }
 
 func (e *Expr) evalAtom() (*big.Float, error) {
-	if e.token == nil || !e.token.IsConst() {
-		return nil, fmt.Errorf("evalAtom:%d cannot evaluate atom type `%v`", e.token.Offset(), e.String())
+	if e.Token == nil || !e.Token.IsConst() {
+		return nil, fmt.Errorf("evalAtom:%d cannot evaluate atom type `%v`", e.Token.Offset(), e.String())
 	}
 	f := new(big.Float)
-	_, err := fmt.Sscan(e.token.Value(), f)
+	_, err := fmt.Sscan(e.Token.Value(), f)
 	if err != nil {
 		return nil, fmt.Errorf("evalAtom: %w", err)
 	}
@@ -107,12 +107,12 @@ func (e *Expr) evalNil() (*big.Float, error) { return nil, nil }
 
 func (e *Expr) evalList(ctx *evalCtx) (*big.Float, error) {
 	head := e.Head()
-	if !head.isAtom() || head.isAtom() && head.token.IsConst() {
+	if !head.isAtom() || head.isAtom() && head.Token.IsConst() {
 		// NOTE: accept that it's probably some sort of nested list etc.. that we
 		// just ignore for eval (for now).
 		return nil, nil
 	}
-	name := head.token.Value()
+	name := head.Token.Value()
 	if !ctx.Prelude.Defined(name) {
 		return nil, fmt.Errorf("evalList: prelude not defined for: %v", name)
 	}

@@ -6,3 +6,8 @@ Usage:
 ```bash
 ./build
 ```
+
+Test:
+```bash
+go test -v ./...
+```
