@@ -9,5 +9,5 @@ Usage:
 
 Test:
 ```bash
-go test -json ./... | go tool snap
+go test -json ./... -fixture $PWD/fixtures/basic.txt | go tool snap
 ```

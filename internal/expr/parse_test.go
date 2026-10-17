@@ -3,30 +3,31 @@ package expr
 import (
 	"bufio"
 	"encoding/json/v2"
+	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-var testdata []string
+var fixture = flag.String("fixture", "", "test fixture to use for all test runs")
 
-func loadTestData() {
-	// TODO(NOMERGE): testdata ingestion through commandline
-	data, err := os.ReadFile("testdata.txt")
+func loadFixture(t *testing.T) (string, []string) {
+	t.Helper()
+	data, err := os.ReadFile(*fixture)
 	if err != nil {
 		panic(err)
 	}
-
 	sc := bufio.NewScanner(strings.NewReader(string(data)))
 	sc.Split(bufio.ScanLines)
+	lines := []string{}
 	for sc.Scan() {
-		testdata = append(testdata, sc.Text())
+		lines = append(lines, sc.Text())
 	}
-}
-
-func init() {
-	loadTestData()
+	basepath := filepath.Base(*fixture)
+	fixtureId := strings.TrimSuffix(basepath, filepath.Ext(basepath))
+	return fixtureId, lines
 }
 
 type snapshot struct {
@@ -44,8 +45,9 @@ func snapshotAssert(t *testing.T, input string, output string) {
 }
 
 func TestParse(t *testing.T) {
-	for index, input := range testdata {
-		t.Run(fmt.Sprintf("TestParse-%d", index), func(t *testing.T) {
+	id, data := loadFixture(t)
+	for index, input := range data {
+		t.Run(fmt.Sprintf("TestParse-%s-%d", id, index), func(t *testing.T) {
 			p := NewParser([]byte(input))
 			expr, err := p.Parse()
 			if err != nil {
