@@ -10,9 +10,6 @@ import (
 // TODO(NOMERGE): dont need a json for the testdata
 var testdata = []struct {
 	Input string `json:"input"`
-	// snapshot will take care of the expected and if an error is reported
-	// Expected string `json:"expected"`
-	// Error    bool   `json:"error"`
 }{}
 
 func loadTestData() {

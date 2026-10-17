@@ -9,12 +9,6 @@ import (
 	"strings"
 )
 
-type InputRow struct {
-	Action string
-	Output string
-	Test   string
-}
-
 type snapshot struct {
 	Input  string
 	Output string
@@ -41,6 +35,36 @@ func loadSnapshot(testname string) (*snapshot, error, bool) {
 	return s, err, true
 }
 
+func writeSnapshot(testname string, s *snapshot) error {
+	data, err := json.Marshal(s)
+	name := fmt.Sprintf(".snapdata/%s.snap", strings.Replace(testname, "/", "-", 1))
+	err = os.WriteFile(name, data, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ttyPrompt(rd *bufio.Reader, prompttext string) (bool, error) {
+	for {
+		fmt.Fprintf(os.Stdout, "%s [Yn]? ", prompttext)
+		anstext, err := rd.ReadString('\n')
+		if err != nil {
+			return false, fmt.Errorf("ttyPrompt: could not read from tty: error: %w\n", err)
+		}
+		ans := strings.Trim(anstext, " \n\r")
+		switch ans {
+		case "":
+			return true, nil
+		case "y":
+			return true, nil
+		case "n":
+			return true, nil
+		}
+		fmt.Fprintf(os.Stdout, "error: invalid reply: \"%s\"\n", ans)
+	}
+}
+
 func main() {
 	// os.RemoveAll(".snapdata")
 	os.Mkdir(".snapdata", 0755)
@@ -53,10 +77,15 @@ func main() {
 	}
 	defer tty.Close()
 
-	confirm := bufio.NewReader(tty)
+	ttyin := bufio.NewReader(tty)
 
 	for stdin.Scan() {
-		var row InputRow
+		var row struct {
+			Action string
+			Output string
+			Test   string
+		}
+
 		if err := json.Unmarshal(stdin.Bytes(), &row); err != nil {
 			fmt.Fprintf(os.Stderr, "snap: cannot parse line data: error: %v\n", err)
 			break
@@ -84,26 +113,16 @@ func main() {
 					fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
 					fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
 
-					fmt.Fprintf(os.Stdout, "Accept new snapshot [y,n]? ")
-					ans, err := confirm.ReadString('\n')
+					ans, err := ttyPrompt(ttyin, "Accept new snapshot?")
 					if err != nil {
-						fmt.Fprintf(os.Stderr, "snap: cannot read tty: error: %v\n", err)
+						fmt.Fprintf(os.Stderr, "snap: cannot read from tty: error: %v\n", err)
 						break
 					}
-					if ans == "y\n" || ans == "n\n" {
-						if ans == "y\n" {
-							data, err := json.Marshal(incoming)
-							name := fmt.Sprintf(".snapdata/%s.snap", strings.Replace(row.Test, "/", "-", 1))
-							err = os.WriteFile(name, data, 0644)
-							if err != nil {
-								fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
-								break
-							}
-						} else {
-							continue
+					if ans {
+						if err := writeSnapshot(row.Test, incoming); err != nil {
+							fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
+							break
 						}
-					} else {
-						panic("handle wrong input")
 					}
 				} else {
 					if existing.Input == incoming.Input && existing.Output == incoming.Output {
@@ -118,26 +137,16 @@ func main() {
 					fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
 					fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
 
-					fmt.Fprintf(os.Stdout, "Accept updates [y,n]? ")
-					ans, err := confirm.ReadString('\n')
+					ans, err := ttyPrompt(ttyin, "Accept updates?")
 					if err != nil {
-						fmt.Fprintf(os.Stderr, "snap: cannot read tty: error: %v\n", err)
+						fmt.Fprintf(os.Stderr, "snap: cannot read from tty: error: %v\n", err)
 						break
 					}
-					if ans == "y\n" || ans == "n\n" {
-						if ans == "y\n" {
-							data, err := json.Marshal(incoming)
-							name := fmt.Sprintf(".snapdata/%s.snap", strings.Replace(row.Test, "/", "-", 1))
-							err = os.WriteFile(name, data, 0644)
-							if err != nil {
-								fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
-								break
-							}
-						} else {
-							continue
+					if ans {
+						if err := writeSnapshot(row.Test, incoming); err != nil {
+							fmt.Fprintf(os.Stderr, "snap: cannot write snapshot: error: %v\n", err)
+							break
 						}
-					} else {
-						panic("handle wrong input")
 					}
 				}
 			}

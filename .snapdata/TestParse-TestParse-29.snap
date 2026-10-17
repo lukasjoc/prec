@@ -1,1 +1,1 @@
-{"Input":"(/ 10 2)","Output":"{\"Type\":1,\"Token\":null,\"Elems\":[{\"Type\":0,\"Token\":{\"Type\":1,\"Off\":1},\"Elems\":null},{\"Type\":0,\"Token\":{\"Type\":0,\"Off\":3},\"Elems\":null},{\"Type\":0,\"Token\":{\"Type\":0,\"Off\":6},\"Elems\":null}]}","Err":null}
+{"Input":"(/ 10 2)","Output":"{\"Type\":1,\"Token\":null,\"Elems\":[{\"Type\":0,\"Token\":{\"Type\":1,\"Off\":1},\"Elems\":null},{\"Type\":0,\"Token\":{\"Type\":0,\"Off\":3},\"Elems\":null},{\"Type\":0,\"Token\":{\"Type\":0,\"Off\":6},\"Elems\":null}]}"}
