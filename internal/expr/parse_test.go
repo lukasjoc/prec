@@ -30,17 +30,13 @@ func init() {
 	loadTestData()
 }
 
-type snapshotAssertion struct {
+type snapshot struct {
 	Input  string
 	Output string
-	Err    any
 }
 
-func snapshotAssert(t *testing.T, input string, output string, assertionErr error) {
-	a := snapshotAssertion{input, output, nil}
-	if assertionErr != nil {
-		a.Err = assertionErr.Error()
-	}
+func snapshotAssert(t *testing.T, input string, output string) {
+	a := snapshot{input, output}
 	data, marshalErr := json.Marshal(a)
 	if marshalErr != nil {
 		t.Fatal(marshalErr)
@@ -55,13 +51,13 @@ func TestParse(t *testing.T) {
 			p := NewParser(input)
 			expr, err := p.Parse()
 			if err != nil {
-				snapshotAssert(t, entry.Input, "", err)
+				snapshotAssert(t, entry.Input, err.Error())
 			} else {
 				expr_json, err := json.Marshal(expr)
 				if err != nil {
 					t.Fatal(err)
 				}
-				snapshotAssert(t, entry.Input, string(expr_json), nil)
+				snapshotAssert(t, entry.Input, string(expr_json))
 			}
 
 		})

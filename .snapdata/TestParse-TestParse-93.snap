@@ -1,1 +1,1 @@
-{"Input":"(+ 1 2","Output":"","Err":"next: EOF"}
+{"Input":"(+ 1 2","Output":"next: EOF"}

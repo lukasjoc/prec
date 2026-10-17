@@ -18,7 +18,6 @@ type InputRow struct {
 type snapshot struct {
 	Input  string
 	Output string
-	Err    any
 }
 
 func parseSnapshot(data []byte) (*snapshot, error) {
@@ -80,14 +79,10 @@ func main() {
 					break
 				}
 				if !found {
+					// TODO(NOMERGE): pretty printed, indented
 					fmt.Fprintf(os.Stdout, "Name: %s\n", row.Test)
 					fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
-					if incoming.Err != nil {
-						fmt.Fprintf(os.Stdout, "Output: %v\n", incoming.Err)
-					} else {
-						// TODO(NOMERGE): pretty printed, indented
-						fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
-					}
+					fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
 
 					fmt.Fprintf(os.Stdout, "Accept new snapshot [y,n]? ")
 					ans, err := confirm.ReadString('\n')
@@ -111,32 +106,17 @@ func main() {
 						panic("handle wrong input")
 					}
 				} else {
-					if existing.Input == incoming.Input && existing.Err != nil && incoming.Err != nil && existing.Err == incoming.Err {
-						continue
-					}
 					if existing.Input == incoming.Input && existing.Output == incoming.Output {
 						continue
 					}
-
+					// TODO(NOMERGE): pretty printed, indented
 					fmt.Fprintf(os.Stdout, "Name: %s\n", row.Test)
-
 					fmt.Fprintf(os.Stdout, "EXISTING ==>\n")
 					fmt.Fprintf(os.Stdout, "Input: %s\n", existing.Input)
-					if existing.Err != nil {
-						fmt.Fprintf(os.Stdout, "Output: %v\n", existing.Err)
-					} else {
-						// TODO(NOMERGE): pretty printed, indented
-						fmt.Fprintf(os.Stdout, "Output: %s\n", existing.Output)
-					}
-
+					fmt.Fprintf(os.Stdout, "Output: %s\n", existing.Output)
 					fmt.Fprintf(os.Stdout, "<== INCOMING\n")
 					fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
-					if incoming.Err != nil {
-						fmt.Fprintf(os.Stdout, "Output: %v\n", incoming.Err)
-					} else {
-						// TODO(NOMERGE): pretty printed, indented
-						fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
-					}
+					fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
 
 					fmt.Fprintf(os.Stdout, "Accept updates [y,n]? ")
 					ans, err := confirm.ReadString('\n')
