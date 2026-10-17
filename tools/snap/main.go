@@ -154,47 +154,30 @@ func main() {
 					break
 				}
 
+				if found && existing.Input == incoming.Input && existing.Output == incoming.Output {
+					continue
+				}
+
+				var prompttext string
 				if !found {
+					prompttext = "Accept new snapshot?"
 					// TODO(NOMERGE): pretty printed, indented
 					fmt.Fprintf(os.Stdout, "Name: %s\n", row.Test)
 					fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
 					fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
-
-					if modeInteractive {
-						ans, err := ttyPrompt(ttyin, "Accept new snapshot?")
-						if err != nil {
-							fmt.Fprintf(os.Stderr, "snap: could not read from tty: error: %v\n", err)
-							break
-						}
-						if ans {
-							if err := writeSnapshot(row.Test, *snapshotsDir, incoming); err != nil {
-								fmt.Fprintf(os.Stderr, "snap: could not write snapshot: error: %v\n", err)
-								break
-							}
-						} else {
-							failed = true
-						}
-					} else {
-						failed =true
-					}
-					continue
+				} else {
+					prompttext = "Accept updates?"
+					fmt.Fprintf(os.Stdout, "Name: %s\n", row.Test)
+					fmt.Fprintf(os.Stdout, "EXISTING ==>\n")
+					fmt.Fprintf(os.Stdout, "Input: %s\n", existing.Input)
+					fmt.Fprintf(os.Stdout, "Output: %s\n", existing.Output)
+					fmt.Fprintf(os.Stdout, "<== INCOMING\n")
+					fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
+					fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
 				}
-
-				if existing.Input == incoming.Input && existing.Output == incoming.Output {
-					continue
-				}
-
-				// TODO(NOMERGE): pretty printed, indented
-				fmt.Fprintf(os.Stdout, "Name: %s\n", row.Test)
-				fmt.Fprintf(os.Stdout, "EXISTING ==>\n")
-				fmt.Fprintf(os.Stdout, "Input: %s\n", existing.Input)
-				fmt.Fprintf(os.Stdout, "Output: %s\n", existing.Output)
-				fmt.Fprintf(os.Stdout, "<== INCOMING\n")
-				fmt.Fprintf(os.Stdout, "Input: %s\n", incoming.Input)
-				fmt.Fprintf(os.Stdout, "Output: %s\n", incoming.Output)
 
 				if modeInteractive {
-					ans, err := ttyPrompt(ttyin, "Accept updates?")
+					ans, err := ttyPrompt(ttyin, prompttext)
 					if err != nil {
 						fmt.Fprintf(os.Stderr, "snap: could not read from tty: error: %v\n", err)
 						break
@@ -208,7 +191,7 @@ func main() {
 						failed = true
 					}
 				} else {
-					failed =true
+					failed = true
 				}
 			}
 		}
