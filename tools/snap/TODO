@@ -1,3 +1,9 @@
+- port this to use different approach: the test setup will generate
+  foobar.snap.new,foobar.snap.modified,foobar.snap.deleted temp files in the
+  test run. This tool will then work out the updates with the user from those
+  files and not work on the streamed test output from `go test -json`. This
+  solves the problem below and makese other things easier, by sacrificing some
+  intuitivity.
 - implement proper message buffering as the go test -json tool will chunk
   outputs and doesnt guarnatee the output order. Different test outputs can
   interleave and longer test inputs basically dont work right now as we
