@@ -1,1 +1,9 @@
-
+- implement proper message buffering as the go test -json tool will chunk
+  outputs and doesnt guarnatee the output order. Different test outputs can
+  interleave and longer test inputs basically dont work right now as we
+  expected all of the json in a single message. We can probably solve this by
+  buffering it by testname into a tx_map and unloading it once we receive the
+  end message SNAP@END for a test. This means we need to introduce the message
+  via a small protocol. sth like [SNAP@START\n, content messages, SNAP@END\n]
+- detect if a snapshot/ input was removed. Ideally with the same ui from the
+  incoming data at the end.

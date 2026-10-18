@@ -4,10 +4,10 @@
 
 Usage:
 ```bash
-./build
+make
 ```
 
 Test:
 ```bash
-go test -json ./... | go tool snap
+make test
 ```
