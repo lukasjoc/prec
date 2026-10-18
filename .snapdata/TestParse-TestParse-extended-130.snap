@@ -1,0 +1,1 @@
+{"Input":"garbage (+ 1 2)","Output":"{\"Type\":0,\"Token\":{\"Type\":2,\"Off\":0},\"Elems\":[]}"}
