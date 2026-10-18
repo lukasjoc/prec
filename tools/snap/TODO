@@ -5,3 +5,5 @@
   buffering it by testname into a tx_map and unloading it once we receive the
   end message SNAP@END for a test. This means we need to introduce the message
   via a small protocol. sth like [SNAP@START\n, content messages, SNAP@END\n]
+- detect if a snapshot/ input was removed. Ideally with the same ui from the
+  incoming data at the end.
