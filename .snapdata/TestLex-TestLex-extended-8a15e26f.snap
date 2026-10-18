@@ -1,0 +1,1 @@
+{"Input":"(+ 1e-10 1e-10)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `1`\",\"tokenTypeIdent\",\"tokenTypeSpace\",\"next:9 bad syntax `1`\",\"tokenTypeIdent\",\"tokenTypeClosePar\"]"}

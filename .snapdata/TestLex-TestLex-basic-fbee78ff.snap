@@ -1,0 +1,1 @@
+{"Input":"(- 5.5 2.25)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `5`\",\"next:4 bad syntax `.`\",\"tokenTypeConst\",\"tokenTypeSpace\",\"next:7 bad syntax `2`\",\"next:8 bad syntax `.`\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}

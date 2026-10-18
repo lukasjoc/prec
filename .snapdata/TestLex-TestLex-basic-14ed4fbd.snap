@@ -1,0 +1,1 @@
+{"Input":"(foo 1 2)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeIdent\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}

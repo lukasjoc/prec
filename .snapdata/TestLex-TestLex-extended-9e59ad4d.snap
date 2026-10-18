@@ -1,0 +1,1 @@
+{"Input":"(+ 1 ２ 3)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"next:5 bad syntax `ï`\",\"next:6 bad syntax `¼`\",\"next:7 bad syntax ``\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}

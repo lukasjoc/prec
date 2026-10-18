@@ -1,0 +1,1 @@
+{"Input":"(+ 1 2)💥","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\",\"next:7 bad syntax `ð`\",\"next:8 bad syntax ``\",\"next:9 bad syntax ``\",\"next:10 bad syntax `¥`\"]"}

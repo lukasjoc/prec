@@ -1,0 +1,1 @@
+{"Input":"(+ 1 (+ 2 foo))","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeIdent\",\"tokenTypeClosePar\",\"tokenTypeClosePar\"]"}

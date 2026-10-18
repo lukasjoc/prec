@@ -1,0 +1,1 @@
+{"Input":"  3.14","Output":"[\"tokenTypeSpace\",\"next:2 bad syntax `3`\",\"next:3 bad syntax `.`\",\"tokenTypeConst\"]"}
