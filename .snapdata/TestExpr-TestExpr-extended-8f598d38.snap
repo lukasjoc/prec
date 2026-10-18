@@ -1,0 +1,1 @@
+{"Input":"garbage (+ 1 2)","Output":"evalAtom:0 cannot evaluate atom type `sexprTypeAtom:tokenTypeIdent:garbage`"}

@@ -1,0 +1,1 @@
+{"Input":"(/ 0 0)","Output":"prelude:apply:`/` division of zero by zero or infinity by infinity"}

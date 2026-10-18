@@ -71,7 +71,17 @@ func newPrelude() *prelude {
 		return acc, nil
 	})
 
-	p.register("/", func(elems []*big.Float) (*big.Float, error) {
+	p.register("/", func(elems []*big.Float) (ret *big.Float, err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				switch e := r.(type) {
+				case error:
+					err = fmt.Errorf("prelude:apply:`/` %w", e)
+				default:
+					panic(e)
+				}
+			}
+		}()
 		if len(elems) == 0 {
 			return nil, fmt.Errorf("prelude:apply:`/` %w", errWrongNumberArgs)
 		}
@@ -142,9 +152,9 @@ func newPrelude() *prelude {
 		if len(elems) == 0 {
 			return nil, fmt.Errorf("prelude:apply:`count` %w", errWrongNumberArgs)
 		}
-        // TODO: this shows that we should really resolve to expressions
-        // instead of big Float. as that could be any value (atom) or even a list
-        // for later..
+		// TODO: this shows that we should really resolve to expressions
+		// instead of big Float. as that could be any value (atom) or even a list
+		// for later..
 		return big.NewFloat(float64(len(elems))), nil
 	})
 
