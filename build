@@ -1,7 +1,0 @@
-#!/bin/sh
-
-set -ex
-
-rm -rf internal/**/*_string.go
-go generate -x ./...
-go install
