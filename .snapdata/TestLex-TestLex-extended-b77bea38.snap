@@ -1,1 +1,1 @@
-{"Input":"1e-308","Output":"[\"next:0 bad syntax `1`\",\"tokenTypeIdent\"]"}
+{"metadata":{"description":"1e-308"},"output":"[\"next:0 bad syntax `1`\",\"tokenTypeIdent\"]"}

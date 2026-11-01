@@ -1,1 +1,1 @@
-{"Input":"(/ 6 2)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}
+{"metadata":{"description":"(/ 6 2)"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}

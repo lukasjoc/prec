@@ -1,1 +1,1 @@
-{"Input":"(+ 1 2) garbage","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\",\"tokenTypeSpace\",\"tokenTypeIdent\"]"}
+{"metadata":{"description":"(+ 1 2) garbage"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\",\"tokenTypeSpace\",\"tokenTypeIdent\"]"}

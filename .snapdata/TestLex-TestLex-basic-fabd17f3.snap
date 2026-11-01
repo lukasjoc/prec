@@ -1,1 +1,1 @@
-{"Input":"(- -5)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}
+{"metadata":{"description":"(- -5)"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}

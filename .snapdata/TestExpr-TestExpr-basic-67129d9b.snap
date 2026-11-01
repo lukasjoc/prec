@@ -1,1 +1,1 @@
-{"Input":"(/ (+ (* 2 5) 10) 5)","Output":"4"}
+{"metadata":{"description":"(/ (+ (* 2 5) 10) 5)"},"output":"4"}

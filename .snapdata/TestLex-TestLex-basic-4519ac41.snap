@@ -1,1 +1,1 @@
-{"Input":"(/ 7.5 2.5)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `7`\",\"next:4 bad syntax `.`\",\"tokenTypeConst\",\"tokenTypeSpace\",\"next:7 bad syntax `2`\",\"next:8 bad syntax `.`\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}
+{"metadata":{"description":"(/ 7.5 2.5)"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `7`\",\"next:4 bad syntax `.`\",\"tokenTypeConst\",\"tokenTypeSpace\",\"next:7 bad syntax `2`\",\"next:8 bad syntax `.`\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}

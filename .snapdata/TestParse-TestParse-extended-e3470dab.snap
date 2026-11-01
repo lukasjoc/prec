@@ -1,1 +1,1 @@
-{"Input":"(/ 100 0.1)","Output":"next:7 bad syntax `0`"}
+{"metadata":{"description":"(/ 100 0.1)"},"output":"next:7 bad syntax `0`"}

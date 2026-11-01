@@ -1,1 +1,1 @@
-{"Input":"+ 1 2)","Output":"evalAtom:0 cannot evaluate atom type `sexprTypeAtom:tokenTypeOp:+`"}
+{"metadata":{"description":"+ 1 2)"},"output":"evalAtom:0 cannot evaluate atom type `sexprTypeAtom:tokenTypeOp:+`"}

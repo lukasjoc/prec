@@ -1,1 +1,1 @@
-{"Input":"(+ foo)","Output":"{\"Type\":1,\"Token\":null,\"Elems\":[{\"Type\":0,\"Token\":{\"Type\":1,\"Off\":1},\"Elems\":[]},{\"Type\":0,\"Token\":{\"Type\":2,\"Off\":3},\"Elems\":[]}]}"}
+{"metadata":{"description":"(+ foo)"},"output":"{\"Type\":1,\"Token\":null,\"Elems\":[{\"Type\":0,\"Token\":{\"Type\":1,\"Off\":1},\"Elems\":[]},{\"Type\":0,\"Token\":{\"Type\":2,\"Off\":3},\"Elems\":[]}]}"}

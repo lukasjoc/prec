@@ -56,15 +56,15 @@ type Lexer struct {
 
 // TODO: should accept io.Reader and `stream` the tokens
 func New(source []byte) *Lexer  { return &Lexer{source, len(source), -1, 0} }
-func (l *Lexer) peekable() bool { return l.pos+1 < len(l.source) }
+func (l *Lexer) Peekable() bool { return l.pos+1 < len(l.source) }
 func (l *Lexer) peek() byte {
-	if l.peekable() {
+	if l.Peekable() {
 		return l.source[l.pos+1]
 	}
 	return eof
 }
 func (l *Lexer) eat() byte {
-	if l.peekable() {
+	if l.Peekable() {
 		l.pos++
 		l.left--
 		return l.source[l.pos]

@@ -1,1 +1,1 @@
-{"Input":"(+ #t 2)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `#`\",\"tokenTypeIdent\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}
+{"metadata":{"description":"(+ #t 2)"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `#`\",\"tokenTypeIdent\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}

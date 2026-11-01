@@ -1,0 +1,2 @@
+- detect if a snapshot/ input was removed. Ideally with the same ui from the
+  incoming data at the end.

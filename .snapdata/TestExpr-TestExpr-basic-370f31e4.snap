@@ -1,1 +1,1 @@
-{"Input":"(+ (1 2))","Output":"prelude:apply:`+` wrong number of arguments"}
+{"metadata":{"description":"(+ (1 2))"},"output":"prelude:apply:`+` wrong number of arguments"}
