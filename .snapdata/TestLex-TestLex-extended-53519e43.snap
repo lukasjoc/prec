@@ -1,1 +1,1 @@
-{"Input":"42.0","Output":"[\"next:0 bad syntax `4`\",\"next:1 bad syntax `2`\",\"next:2 bad syntax `.`\",\"tokenTypeConst\"]"}
+{"metadata":{"description":"42.0"},"output":"[\"next:0 bad syntax `4`\",\"next:1 bad syntax `2`\",\"next:2 bad syntax `.`\",\"tokenTypeConst\"]"}

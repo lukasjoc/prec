@@ -1,1 +1,1 @@
-{"Input":"(+ -Infinity 1)","Output":"evalList: invalid operand type `sexprTypeAtom:tokenTypeOp:-`"}
+{"metadata":{"description":"(+ -Infinity 1)"},"output":"evalList: invalid operand type `sexprTypeAtom:tokenTypeOp:-`"}

@@ -1,1 +1,1 @@
-{"Input":"(/ 1e-100 1e100)","Output":"next:3 bad syntax `1`"}
+{"metadata":{"description":"(/ 1e-100 1e100)"},"output":"next:3 bad syntax `1`"}

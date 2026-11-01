@@ -1,1 +1,1 @@
-{"Input":"(/ 0.0 0.0)","Output":"next:3 bad syntax `0`"}
+{"metadata":{"description":"(/ 0.0 0.0)"},"output":"next:3 bad syntax `0`"}

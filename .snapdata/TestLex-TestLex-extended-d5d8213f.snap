@@ -1,1 +1,1 @@
-{"Input":"-2.5e+2","Output":"[\"next:0 bad syntax `-`\",\"next:1 bad syntax `2`\",\"next:2 bad syntax `.`\",\"next:3 bad syntax `5`\",\"next:4 bad syntax `e`\",\"tokenTypeConst\"]"}
+{"metadata":{"description":"-2.5e+2"},"output":"[\"next:0 bad syntax `-`\",\"next:1 bad syntax `2`\",\"next:2 bad syntax `.`\",\"next:3 bad syntax `5`\",\"next:4 bad syntax `e`\",\"tokenTypeConst\"]"}

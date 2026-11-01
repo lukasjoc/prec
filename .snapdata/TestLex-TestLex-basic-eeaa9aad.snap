@@ -1,1 +1,1 @@
-{"Input":"(+ 1.2.3 4)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `1`\",\"next:4 bad syntax `.`\",\"next:5 bad syntax `2`\",\"next:6 bad syntax `.`\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}
+{"metadata":{"description":"(+ 1.2.3 4)"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `1`\",\"next:4 bad syntax `.`\",\"next:5 bad syntax `2`\",\"next:6 bad syntax `.`\",\"tokenTypeConst\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeClosePar\"]"}

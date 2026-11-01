@@ -1,1 +1,1 @@
-{"Input":"(- (+ 1 2) (+ 3 4))","Output":"-4"}
+{"metadata":{"description":"(- (+ 1 2) (+ 3 4))"},"output":"-4"}

@@ -1,1 +1,1 @@
-{"Input":"(foo)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeIdent\",\"tokenTypeClosePar\"]"}
+{"metadata":{"description":"(foo)"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeIdent\",\"tokenTypeClosePar\"]"}

@@ -1,1 +1,1 @@
-{"Input":"(+ 1.0 2.0)","Output":"next:3 bad syntax `1`"}
+{"metadata":{"description":"(+ 1.0 2.0)"},"output":"next:3 bad syntax `1`"}

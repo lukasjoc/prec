@@ -1,1 +1,1 @@
-{"Input":"(- 1e10 1e10)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `1`\",\"tokenTypeIdent\",\"tokenTypeSpace\",\"next:8 bad syntax `1`\",\"tokenTypeIdent\",\"tokenTypeClosePar\"]"}
+{"metadata":{"description":"(- 1e10 1e10)"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"next:3 bad syntax `1`\",\"tokenTypeIdent\",\"tokenTypeSpace\",\"next:8 bad syntax `1`\",\"tokenTypeIdent\",\"tokenTypeClosePar\"]"}

@@ -1,1 +1,1 @@
-{"Input":"(foo 1 2)","Output":"evalList: prelude not defined for: foo"}
+{"metadata":{"description":"(foo 1 2)"},"output":"evalList: prelude not defined for: foo"}

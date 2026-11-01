@@ -1,1 +1,1 @@
-{"Input":"(+ 1 (* 2 (- 10 3)))","Output":"15"}
+{"metadata":{"description":"(+ 1 (* 2 (- 10 3)))"},"output":"15"}

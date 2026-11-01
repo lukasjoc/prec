@@ -1,1 +1,1 @@
-{"Input":"(+ 1 ٣)","Output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"next:5 bad syntax `Ù`\",\"next:6 bad syntax `£`\",\"tokenTypeClosePar\"]"}
+{"metadata":{"description":"(+ 1 ٣)"},"output":"[\"tokenTypeOpenPar\",\"tokenTypeOp\",\"tokenTypeSpace\",\"tokenTypeConst\",\"tokenTypeSpace\",\"next:5 bad syntax `Ù`\",\"next:6 bad syntax `£`\",\"tokenTypeClosePar\"]"}

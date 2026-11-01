@@ -1,1 +1,1 @@
-{"Input":"(+ Infinity 1)","Output":"evalList: evalAtom:3 cannot evaluate atom type `sexprTypeAtom:tokenTypeIdent:Infinity`"}
+{"metadata":{"description":"(+ Infinity 1)"},"output":"evalList: evalAtom:3 cannot evaluate atom type `sexprTypeAtom:tokenTypeIdent:Infinity`"}
